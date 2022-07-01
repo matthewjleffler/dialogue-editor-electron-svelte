@@ -1,0 +1,62 @@
+{
+  "name": "dialogue-editor",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Dialogue Editor",
+  "main": "src/electron.cjs",
+  "type": "module",
+  "scripts": {
+    "dev": "cross-env NODE_ENV=dev npm run dev:all",
+    "dev:all": "concurrently -n=svelte,electron -c='#ff3e00',blue \"npm run dev:svelte\" \"npm run dev:electron\"",
+    "dev:svelte": "svelte-kit dev",
+    "dev:electron": "electron src/electron.cjs",
+    "build": "cross-env NODE_ENV=production npm run build:svelte && npm run build:electron",
+    "build:svelte": "svelte-kit build",
+    "build:electron": "electron-builder -mwl --config build.config.json",
+    "start": "svelte-kit start"
+  },
+  "engines": {
+    "npm": ">=7",
+    "pnpm": "use npm - https://github.com/FractalHQ/sveltekit-electron/issues/12#issuecomment-1068399385",
+    "yarn": "use npm - https://github.com/FractalHQ/sveltekit-electron/issues/12#issuecomment-1068399385"
+  },
+  "browserslist": [
+    "Chrome 89"
+  ],
+  "dependencies": {
+    "electron-context-menu": "^3.1.2",
+    "electron-reloader": "^1.2.3",
+    "electron-serve": "^1.1.0",
+    "electron-window-state": "^5.0.3",
+    "xml-js": "^1.6.11"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-static": "^1.0.0-next.34",
+    "@sveltejs/kit": "next",
+    "@types/electron-window-state": "^2.0.34",
+    "@typescript-eslint/eslint-plugin": "^5.27.0",
+    "@typescript-eslint/parser": "^5.27.0",
+    "autoprefixer": "^10.4.7",
+    "concurrently": "^7.2.1",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.0.1",
+    "electron": "^19.0.3",
+    "electron-builder": "^23.0.3",
+    "electron-connect": "^0.6.3",
+    "electron-packager": "^15.5.1",
+    "electron-updater": "^5.0.1",
+    "eslint": "^8.17.0",
+    "eslint-plugin-svelte": "^1.1.2",
+    "npm-run-all": "^4.1.5",
+    "postcss": "^8.4.14",
+    "prettier": "^2.6.2",
+    "prettier-plugin-svelte": "^2.7.0",
+    "sass": "^1.52.2",
+    "svelte": "^3.48.0",
+    "svelte-check": "^2.7.2",
+    "svelte-preprocess": "^4.10.7",
+    "tailwindcss": "^3.0.24",
+    "typescript": "^4.7.3",
+    "vite": "^2.9.9"
+  }
+}

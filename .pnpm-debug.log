@@ -1,0 +1,22 @@
+{
+  "0 debug pnpm:scope": {
+    "selected": 1
+  },
+  "1 error pnpm": {
+    "code": "ERR_PNPM_UNSUPPORTED_ENGINE",
+    "packageId": "/Users/mjleffler/Downloads/dialog-editor-svelte-electroon",
+    "wanted": {
+      "pnpm": "use npm - https://github.com/FractalHQ/sveltekit-electron/issues/12#issuecomment-1068399385"
+    },
+    "current": {
+      "node": "v16.15.1",
+      "pnpm": "7.1.7"
+    },
+    "err": {
+      "name": "pnpm",
+      "message": "Unsupported engine for /Users/mjleffler/Downloads/dialog-editor-svelte-electroon: wanted: {\"pnpm\":\"use npm - https://github.com/FractalHQ/sveltekit-electron/issues/12#issuecomment-1068399385\"} (current: {\"node\":\"v16.15.1\",\"pnpm\":\"7.1.7\"})",
+      "code": "ERR_PNPM_UNSUPPORTED_ENGINE",
+      "stack": "pnpm: Unsupported engine for /Users/mjleffler/Downloads/dialog-editor-svelte-electroon: wanted: {\"pnpm\":\"use npm - https://github.com/FractalHQ/sveltekit-electron/issues/12#issuecomment-1068399385\"} (current: {\"node\":\"v16.15.1\",\"pnpm\":\"7.1.7\"})\n    at checkEngine (/usr/local/lib/node_modules/pnpm/dist/pnpm.cjs:41245:16)\n    at checkPackage (/usr/local/lib/node_modules/pnpm/dist/pnpm.cjs:43493:74)\n    at packageIsInstallable (/usr/local/lib/node_modules/pnpm/dist/pnpm.cjs:43516:61)\n    at tryReadProjectManifest (/usr/local/lib/node_modules/pnpm/dist/pnpm.cjs:43843:55)\n    at async handler (/usr/local/lib/node_modules/pnpm/dist/pnpm.cjs:121600:48)\n    at async /usr/local/lib/node_modules/pnpm/dist/pnpm.cjs:182701:21\n    at async run (/usr/local/lib/node_modules/pnpm/dist/pnpm.cjs:182675:34)\n    at async runPnpm (/usr/local/lib/node_modules/pnpm/dist/pnpm.cjs:182893:5)\n    at async /usr/local/lib/node_modules/pnpm/dist/pnpm.cjs:182885:7"
+    }
+  }
+}

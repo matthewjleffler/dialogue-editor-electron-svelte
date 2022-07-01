@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "$lib": [
+        "src/lib"
+      ],
+      "$lib/*": [
+        "src/lib/*"
+      ],
+      "/~/*": [
+        "src/*"
+      ],
+      "$modules": [
+        "src/modules"
+      ],
+      "$modules/*": [
+        "src/modules/*"
+      ],
+      "$stores": [
+        "src/stores",
+      ],
+      "$stores/*": [
+        "src/stores/*"
+      ]
+    }
+  },
+  "exclude": [
+    "node_modules",
+    "build",
+    "dist"
+  ]
+}
