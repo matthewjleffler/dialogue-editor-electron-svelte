@@ -241,13 +241,13 @@ function getIndent(indent) {
 }
 
 function groupToXmlRecursive(indent, group) {
-  let result = `${getIndent(indent)}<group id="${group.id}" mod="${group.mod}">\n`;
+  let result = `${getIndent(indent)}<group id="${group._id}">\n`;
   for (let i = 0; i < group.group.length; i++) {
     result += groupToXmlRecursive(indent + 1, group.group[i]);
   }
   for (let g = 0; g < group.entry.length; g++) {
     const entry = group.entry[g];
-    result += `${getIndent(indent + 1)}<entry id="${entry.id}" mod="${entry.mod}">\n`;
+    result += `${getIndent(indent + 1)}<entry id="${entry._id}">\n`;
     for (let r = 0; r < entry.region.length; r++) {
       const region = entry.region[r];
       result += `${getIndent(indent + 2)}<region id="${region.id}">\n`;
@@ -421,6 +421,7 @@ function generateMenu() {
       submenu: [
         {
           label: "New Project",
+          // TODO new project
         },
         {
           label: "Open Project",

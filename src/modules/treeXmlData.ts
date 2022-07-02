@@ -20,8 +20,7 @@ export interface TreeXmlInfoRegions {
 
 export interface TreeXmlGroup {
   _attributes: {
-    id: string,
-    mod: string,
+    id: string
   },
   group?: TreeXmlGroup[] | TreeXmlGroup,
   entry?: TreeXmlEntry[] | TreeXmlEntry,
@@ -30,7 +29,6 @@ export interface TreeXmlGroup {
 export interface TreeXmlEntry {
   _attributes: {
     id: string,
-    mod: string,
   },
   region: TreeXmlRegion,
 }

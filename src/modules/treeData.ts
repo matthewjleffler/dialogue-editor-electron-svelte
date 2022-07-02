@@ -1,43 +1,137 @@
-export interface TreeData {
-  info: TreeInfo,
-  group: TreeGroup[],
-  parent?: TreeGroup | TreeData,
-  id?: string,
+import { regionList } from "$stores";
+import { get } from "svelte/store";
+import { rootContentId } from "./constants";
+import { getItemPath } from "./utils";
+
+export class TreeData {
+  info: Info;
+  group: Group[];
+  parent: Group | TreeData;
+  id: string;
+
+  static emptyTreeData(): TreeData {
+    const emptyInfo = Info.emptyInfo();
+    const empty = new TreeData(emptyInfo);
+    const group = new Group(rootContentId, null);
+    empty.group.push(group);
+    return empty;
+  }
+
+  constructor(info: Info) {
+    this.info = info;
+    this.group = [];
+  }
 }
 
-export interface TreeInfo {
-  version: string,
-  activeregion: string,
-  regions: string[],
-  name: string,
+export class Info {
+  version: string;
+  activeregion: string;
+  regions: string[];
+  name: string;
+
+  static emptyInfo(): Info {
+    const empty = new Info('1.0', 'en', ['en'], 'translation');
+    return empty;
+  }
+
+  constructor(version: string, activeregion: string, regions: string[], name: string) {
+    this.version = version;
+    this.activeregion = activeregion;
+    this.regions = regions;
+    this.name = name;
+  }
 }
 
-export interface TreeGroup {
-  id: string,
-  mod: string,
-  group: TreeGroup[],
-  entry: TreeEntry[],
-  parent: TreeGroup | TreeData,
-  path: string,
-  meetsFilter?: boolean,
-  deleted?: boolean,
+export class Group {
+  private _id: string;
+  private _path: string;
+  group: Group[] = [];
+  entry: Entry[] = [];
+  parent: Group | TreeData;
+  meetsFilter: boolean = true;
+  deleted: boolean = false;
+
+  constructor(id: string, parent: Group | TreeData) {
+    this.parent = parent;
+    if (parent) {
+      this.parent.group.push(this);
+    }
+    this.setId(id);
+  }
+
+  get id(): string {
+    return this._id;
+  }
+
+  get path(): string {
+    return this._path;
+  }
+
+  setId(value: string) {
+    this._id = value;
+    this._path = getItemPath(this);
+  }
 }
 
-export interface TreeEntry {
-  id: string,
-  mod: string,
-  region: TreeRegion[],
-  parent: TreeGroup,
-  path: string,
-  meetsFilter?: boolean,
-  deleted?: boolean,
+export class Entry {
+  private _id: string;
+  private _path: string;
+  region: Region[] = [];
+  parent: Group;
+  meetsFilter: boolean = true;
+  deleted: boolean = false;
+
+  static newEmptyEntry(id: string, parent: Group): Entry {
+    const empty = new Entry(id, parent);
+    const existingRegions = get(regionList);
+    for (const existing of existingRegions) {
+      const region = Region.newEmptyRegion(existing);
+      empty.region.push(region);
+    }
+    return empty;
+  }
+
+  constructor(id: string, parent: Group) {
+    this.parent = parent;
+    parent.entry.push(this);
+    this.setId(id);
+  }
+
+  get id(): string {
+    return this._id;
+  }
+
+  get path(): string {
+    return this._path;
+  }
+
+  setId(value: string) {
+    this._id = value;
+    this._path = getItemPath(this);
+  }
 }
 
-export interface TreeRegion {
-  id: string,
-  page: TreePage[],
+export class Region {
+  id: string;
+  page: TreePage[];
+
+  static newEmptyRegion(id: string): Region {
+    const region = new Region(id);
+    const page = new TreePage('');
+    region.page.push(page);
+    return region;
+  }
+
+  constructor(id: string) {
+    this.id = id;
+    this.page = [];
+  }
 }
 
-export interface TreePage {
-  text: string,
+export class TreePage {
+  text: string;
+
+  constructor(text: string) {
+    this.text = text;
+  }
 }

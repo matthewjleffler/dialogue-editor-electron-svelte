@@ -1,5 +1,5 @@
 import { rootContentId } from "./constants";
-import type { TreeData, TreeEntry, TreeGroup, TreeRegion } from "./treeData";
+import type { TreeData, Entry, Group, Region } from "./treeData";
 
 export function getArrayProperty<T>(property: T | T[]): T[] {
   if (property === undefined) {
@@ -21,7 +21,7 @@ export function arrayRemove<T>(array: T[], value: T) {
   }
 }
 
-export function getRegionFromEntry(entry: TreeEntry, regionId: string): TreeRegion {
+export function getRegionFromEntry(entry: Entry, regionId: string): Region {
   if (!entry) {
     return null;
   }
@@ -29,9 +29,7 @@ export function getRegionFromEntry(entry: TreeEntry, regionId: string): TreeRegi
   if (!regionList) {
     return null;
   }
-  const len = regionList.length;
-  for (let i = 0; i < len; i++) {
-    const region = regionList[i];
+  for (const region of regionList) {
     if (region.id === regionId) {
       return region;
     }
@@ -39,7 +37,7 @@ export function getRegionFromEntry(entry: TreeEntry, regionId: string): TreeRegi
   return null;
 }
 
-export function getItemPath(entry: TreeData | TreeGroup | TreeEntry): string {
+export function getItemPath(entry: TreeData | Group | Entry): string {
   if (entry.parent === undefined || entry.id === rootContentId) {
     return '';
   }

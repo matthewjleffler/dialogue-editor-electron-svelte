@@ -2,7 +2,7 @@
   import { leftPaneWidth } from '$modules/constants';
   import { displayTextPrompt } from '$modules/prompt';
   import { TreeEvent, treeEventDispatcher } from '$modules/tree';
-  import type { TreeGroup, TreeRegion } from '$modules/treeData';
+  import { Region, type Group } from '$modules/treeData';
   import { activeRegion, regionList, treeActiveEntry, treeData } from '$stores';
 
   interface Option {
@@ -86,9 +86,9 @@
     treeData.set(data);
   }
 
-  function populateGroupRecursive(group: TreeGroup, regionId: string) {
+  function populateGroupRecursive(group: Group, regionId: string) {
     for (const entry of group.entry) {
-      const region: TreeRegion = { id: regionId, page: [{ text: '' }] };
+      const region = Region.newEmptyRegion(regionId);
       entry.region.push(region);
     }
 

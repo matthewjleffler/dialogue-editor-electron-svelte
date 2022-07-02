@@ -3,13 +3,12 @@
   import { ElectronEvent, electronListen } from '$modules/electron';
   import { displayConfirmPrompt, displayTextPrompt } from '$modules/prompt';
   import { TreeEvent, treeEventDispatcher, TreeNodeItem } from '$modules/tree';
-  import type { TreeData, TreeEntry, TreeGroup } from '$modules/treeData';
-  import { arrayRemove, getItemPath, getRegionFromEntry } from '$modules/utils';
+  import { Entry, type TreeData, Group } from '$modules/treeData';
+  import { arrayRemove, getRegionFromEntry } from '$modules/utils';
   import {
     activeRegion,
     filterId,
     filterText,
-    regionList,
     treeActiveEntry,
     treeActiveNode,
     treeContextNode,
@@ -64,16 +63,7 @@
     }
 
     node.collapsed = false;
-    const newGroup: TreeGroup = {
-      id: value,
-      mod: 't',
-      group: [],
-      entry: [],
-      parent: node.group,
-      path: '',
-    };
-    node.group.group.push(newGroup);
-    newGroup.path = getItemPath(newGroup);
+    const newGroup = new Group(value, node.group);
     TreeNodeItem.fromTreeGroup(newGroup, node, false);
     clearContextAndSort();
   }
@@ -84,8 +74,6 @@
       treeActiveEntry.set(null);
       treeActiveEntry.set(entry);
     }
-
-    // TODO sorting is putting groups at the bottom, sometimes?
 
     const context = $treeContextNode;
     if (context.children) {
@@ -100,9 +88,9 @@
   }
 
   function iterateGroups(
-    parent: TreeGroup,
-    groupAction: (group: TreeGroup) => void,
-    entryAction: (entry: TreeEntry) => void,
+    parent: Group,
+    groupAction: (group: Group) => void,
+    entryAction: (entry: Entry) => void,
   ) {
     for (const group of parent.group) {
       groupAction(group);
@@ -234,19 +222,7 @@
     }
 
     node.collapsed = false;
-    const existingRegions = $regionList;
-    const newRegions = [];
-    for (const region of existingRegions) {
-      newRegions.push({ id: region, page: [{ text: '' }] });
-    }
-    const newEntry: TreeEntry = {
-      id: value,
-      mod: 't',
-      region: newRegions,
-      parent: node.group,
-      path: '',
-    };
-    node.group.entry.push(newEntry);
+    const newEntry = Entry.newEmptyEntry(value, node.group);
     TreeNodeItem.fromTreeEntry(newEntry, node, false);
     treeActiveEntry.set(newEntry);
     clearContextAndSort();
@@ -296,7 +272,7 @@
         return;
       }
       node.module = value;
-      node.entry.id = value;
+      node.entry.setId(value);
       treeActiveEntry.set(node.entry);
 
       clearContextAndSort();
@@ -326,7 +302,7 @@
   function markFiltersRecursive(
     filterId: boolean,
     filterText: boolean,
-    group: TreeGroup,
+    group: Group,
     parentFiltered: boolean,
     count: Count,
   ) {
@@ -418,7 +394,7 @@
     return group.meetsFilter;
   }
 
-  function groupMeetsFilterIdCriteria(group: TreeGroup): boolean {
+  function groupMeetsFilterIdCriteria(group: Group): boolean {
     // We contain filter, render
     if (group.path && group.path.toLowerCase().includes($filterId)) {
       return true;
@@ -427,7 +403,7 @@
     return false;
   }
 
-  function entryMeetsFilterIdCriteria(entry: TreeEntry): boolean {
+  function entryMeetsFilterIdCriteria(entry: Entry): boolean {
     // We contain filter, render
     if (entry.path && entry.path.toLowerCase().includes($filterId)) {
       return true;
@@ -436,7 +412,7 @@
     return false;
   }
 
-  function entryMeetsFilterTextCriteria(entry: TreeEntry): boolean {
+  function entryMeetsFilterTextCriteria(entry: Entry): boolean {
     // We contain filter text, render
     const region = getRegionFromEntry(entry, $activeRegion);
     if (region !== undefined) {
@@ -453,7 +429,7 @@
     return false;
   }
 
-  function buildTreeRecursive(parent: TreeGroup, treeNode: TreeNodeItem, collapsed: boolean) {
+  function buildTreeRecursive(parent: Group, treeNode: TreeNodeItem, collapsed: boolean) {
     for (const group of parent.group) {
       if (!group.meetsFilter) {
         continue;

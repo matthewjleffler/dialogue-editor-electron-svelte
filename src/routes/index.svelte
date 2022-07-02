@@ -10,7 +10,7 @@
     type SaveMessage,
     type SaveRequest,
   } from '$modules/electron';
-  import type { TreeData, TreeEntry, TreeGroup, TreePage, TreeRegion } from '$modules/treeData';
+  import { Entry, TreePage, Region, TreeData, Group, Info } from '$modules/treeData';
   import type {
     TreeXmlEntry,
     TreeXmlGroup,
@@ -18,7 +18,7 @@
     TreeXmlRegion,
     TreeXmlRoot,
   } from '$modules/treeXmlData';
-  import { getArrayProperty, getItemPath } from '$modules/utils';
+  import { getArrayProperty } from '$modules/utils';
   import { activeRegion, regionList, treeActiveNode, treeData } from '$stores';
   import { onMount } from 'svelte';
 
@@ -40,15 +40,13 @@
     for (const parsedRegion of regions) {
       parsedRegions.push(parsedRegion._text);
     }
-    const loadedData: TreeData = {
-      info: {
-        version: data.info.version._text,
-        activeregion: data.info.activeregion._text,
-        regions: parsedRegions,
-        name: data.info.name._text,
-      },
-      group: [],
-    };
+    const loadedInfo = new Info(
+      data.info.version._text,
+      data.info.activeregion._text,
+      parsedRegions,
+      data.info.name._text,
+    );
+    const loadedData = new TreeData(loadedInfo);
     const groups = getArrayProperty(data.group);
     buildParsedGroupsRecursive(loadedData, groups);
 
@@ -58,22 +56,13 @@
     activeRegion.set(loadedData.info.activeregion);
   }
 
-  function buildParsedGroupsRecursive(parent: TreeData | TreeGroup, parsedGroup: TreeXmlGroup[]) {
+  function buildParsedGroupsRecursive(parent: TreeData | Group, parsedGroup: TreeXmlGroup[]) {
     if (parsedGroup === null) {
       // Nothing in the parent group
       return;
     }
     for (const group of parsedGroup) {
-      const newGroup: TreeGroup = {
-        id: group._attributes.id,
-        mod: group._attributes.mod,
-        group: [],
-        entry: [],
-        parent: parent,
-        path: '',
-      };
-      newGroup.path = getItemPath(newGroup);
-      parent.group.push(newGroup);
+      const newGroup = new Group(group._attributes.id, parent);
       const entries = getArrayProperty(group.entry);
       buildParsedEntry(newGroup, entries);
       const groups = getArrayProperty(group.group);
@@ -81,36 +70,25 @@
     }
   }
 
-  function buildParsedEntry(parent: TreeGroup, parsedEntry: TreeXmlEntry[]) {
+  function buildParsedEntry(parent: Group, parsedEntry: TreeXmlEntry[]) {
     if (parsedEntry === null) {
       // No entries in this group
       return;
     }
     for (const entry of parsedEntry) {
-      const newEntry: TreeEntry = {
-        id: entry._attributes.id,
-        mod: entry._attributes.mod,
-        region: [],
-        parent: parent,
-        path: '',
-      };
-      newEntry.path = getItemPath(newEntry);
-      parent.entry.push(newEntry);
+      const newEntry = new Entry(entry._attributes.id, parent);
       const regions = getArrayProperty(entry.region);
       buildParsedRegion(newEntry.region, regions);
     }
   }
 
-  function buildParsedRegion(regionArray: TreeRegion[], parsedRegion: TreeXmlRegion[]) {
+  function buildParsedRegion(regionArray: Region[], parsedRegion: TreeXmlRegion[]) {
     if (parsedRegion === null) {
       // No regions in this group
       return;
     }
     for (const region of parsedRegion) {
-      const newRegion: TreeRegion = {
-        id: region._attributes.id,
-        page: [],
-      };
+      const newRegion = new Region(region._attributes.id);
       regionArray.push(newRegion);
       const pages = getArrayProperty(region.page);
       buildParsedPage(newRegion.page, pages);
@@ -118,14 +96,14 @@
   }
 
   function buildParsedPage(pageArray: TreePage[], parsedPage: TreeXmlPage[]) {
-    if (parsedPage === null) {
+    if (!parsedPage) {
       // No pages in this region
-      const empty = { text: '' };
+      const empty = new TreePage('');
       pageArray.push(empty);
       return;
     }
     for (const page of parsedPage) {
-      const newPage = { text: page._cdata };
+      const newPage = new TreePage(page._cdata);
       pageArray.push(newPage);
     }
   }
