@@ -2,7 +2,7 @@
   import { rootContentId } from '$modules/constants';
   import { ElectronEvent, electronListen } from '$modules/electron';
   import { displayConfirmPrompt, displayTextPrompt } from '$modules/prompt';
-  import { TreeEvent, treeEventDispatcher, type TreeNodeItem } from '$modules/tree';
+  import { TreeEvent, treeEventDispatcher, TreeNodeItem } from '$modules/tree';
   import type { TreeData, TreeEntry, TreeGroup } from '$modules/treeData';
   import { arrayRemove, getItemPath, getRegionFromEntry } from '$modules/utils';
   import {
@@ -74,14 +74,7 @@
     };
     node.group.group.push(newGroup);
     newGroup.path = getItemPath(newGroup);
-    const newNode: TreeNodeItem = {
-      module: newGroup.id,
-      parent: node,
-      children: [],
-      group: newGroup,
-    };
-    node.children.push(newNode);
-
+    TreeNodeItem.fromTreeGroup(newGroup, node, false);
     clearContextAndSort();
   }
 
@@ -91,6 +84,8 @@
       treeActiveEntry.set(null);
       treeActiveEntry.set(entry);
     }
+
+    // TODO sorting is putting groups at the bottom, sometimes?
 
     const context = $treeContextNode;
     if (context.children) {
@@ -252,19 +247,14 @@
       path: '',
     };
     node.group.entry.push(newEntry);
-    const newNode: TreeNodeItem = {
-      module: newEntry.id,
-      parent: node,
-      leaf: true,
-      entry: newEntry,
-    };
-    node.children.push(newNode);
-
+    TreeNodeItem.fromTreeEntry(newEntry, node, false);
     treeActiveEntry.set(newEntry);
     clearContextAndSort();
   }
 
   function onDupliateId() {
+    const node = $treeContextNode;
+
     // TODO this
     console.log('DUPLICATE ID');
   }
@@ -315,12 +305,7 @@
 
   function buildTree(constructedTree: TreeData, filterId: string, filterText: string) {
     const rootGroup = constructedTree.group[0];
-    const rootTree: TreeNodeItem = {
-      module: rootGroup.id,
-      children: [],
-      group: rootGroup,
-      parent: null,
-    };
+    const rootTree = TreeNodeItem.fromTreeGroup(rootGroup, null, false);
     const count: Count = { num: 0 };
     const filteringId = isFilteringId(filterId);
     const filteringText = isFilteringText(filterText);
@@ -473,27 +458,14 @@
       if (!group.meetsFilter) {
         continue;
       }
-      const newBranch: TreeNodeItem = {
-        module: group.id,
-        children: [],
-        collapsed,
-        group: group,
-        parent: treeNode,
-      };
+      const newBranch = TreeNodeItem.fromTreeGroup(group, treeNode, collapsed);
       buildTreeRecursive(group, newBranch, collapsed);
       for (const entry of group.entry) {
         if (!entry.meetsFilter) {
           continue;
         }
-        const newEntry: TreeNodeItem = {
-          module: entry.id,
-          leaf: true,
-          entry: entry,
-          parent: newBranch,
-        };
-        newBranch.children.push(newEntry);
+        TreeNodeItem.fromTreeEntry(entry, newBranch, collapsed);
       }
-      treeNode.children.push(newBranch);
     }
   }
 

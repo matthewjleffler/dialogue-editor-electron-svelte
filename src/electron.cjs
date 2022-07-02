@@ -457,12 +457,6 @@ function generateMenu() {
       submenu: [
         { role: 'undo' },
         { role: 'redo' },
-        { type: 'separator' },
-        { role: 'cut' },
-        { role: 'copy' },
-        { role: 'paste' },
-        { role: 'delete' },
-        { role: 'selectall' },
       ],
     },
     {
@@ -477,24 +471,7 @@ function generateMenu() {
     {
       role: 'window',
       submenu: [{ role: 'minimize' }, { role: 'close' }],
-    },
-    {
-      role: 'help',
-      submenu: [
-        {
-          click() {
-            shell.openExternal('https://getstream.io/winds');
-          },
-          label: 'Learn More',
-        },
-        {
-          click() {
-            shell.openExternal('https://github.com/GetStream/Winds/issues');
-          },
-          label: 'File Issue on GitHub',
-        },
-      ],
-    },
+    }
   ];
 
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));

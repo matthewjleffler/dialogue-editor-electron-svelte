@@ -2,7 +2,8 @@
   import { leftPaneWidth } from '$modules/constants';
   import { displayTextPrompt } from '$modules/prompt';
   import { TreeEvent, treeEventDispatcher } from '$modules/tree';
-  import { activeRegion, regionList, treeActiveEntry } from '$stores';
+  import type { TreeGroup, TreeRegion } from '$modules/treeData';
+  import { activeRegion, regionList, treeActiveEntry, treeData } from '$stores';
 
   interface Option {
     value: string;
@@ -43,9 +44,12 @@
       return;
     }
 
+    const data = $treeData;
+
     if (value !== newId) {
       // Simply set the new value
       activeRegion.set(value);
+      data.info.activeregion = value;
       treeEventDispatcher.dispatch(TreeEvent.RefreshTree);
       return;
     }
@@ -75,9 +79,22 @@
     regions.sort(); // Sort alphabetically
     regionList.set(regions);
     activeRegion.set(newRegion);
-    treeEventDispatcher.dispatch(TreeEvent.RefreshTree);
 
-    // TODO need to populate every entry in the region with 1??
+    // Loop over whole tree and add region with empty page to every entry
+    data.info.activeregion = newRegion;
+    populateGroupRecursive(data.group[0], newRegion);
+    treeData.set(data);
+  }
+
+  function populateGroupRecursive(group: TreeGroup, regionId: string) {
+    for (const entry of group.entry) {
+      const region: TreeRegion = { id: regionId, page: [{ text: '' }] };
+      entry.region.push(region);
+    }
+
+    for (const child of group.group) {
+      populateGroupRecursive(child, regionId);
+    }
   }
 </script>
 

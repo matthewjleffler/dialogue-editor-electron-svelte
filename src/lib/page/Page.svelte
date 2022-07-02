@@ -48,7 +48,6 @@
   }
 </script>
 
-<!-- TODO Max rows -->
 <div class="flex flex-col">
   <div class="flex flex-row">
     <p class="w-1/2">Page {index + 1}</p>

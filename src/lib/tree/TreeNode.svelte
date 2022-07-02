@@ -79,7 +79,7 @@
   }
 </script>
 
-{#if !item.leaf}
+{#if !item.entry}
   {#if item.children}
     <span
       class="row"
