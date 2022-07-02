@@ -9,7 +9,6 @@ export function dataToExportXml(data: TranslationData): string {
   result += `<data>\n`;
   for (const region of data.info.regions) {
     result += `  <region id="${region}">\n`;
-
     for (const entry of allEntries) {
       const entryRegion = getEntryRegion(region, entry);
       if (entryRegion === null) {

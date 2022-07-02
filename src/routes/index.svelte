@@ -12,9 +12,18 @@
   } from '$modules/electron';
   import { dataToExportXml, dataToProjectXml } from '$modules/export';
   import { TranslationData } from '$modules/translationData';
-  import { parseXmlRoot, type XmlRoot } from '$modules/xmlData';
-  import { activeRegion, regionList, treeHighlightNode, treeData } from '$stores';
+  import { parseXmlRoot, type XmlRoot } from '$modules/xml';
+  import {
+    activeRegion,
+    regionList,
+    treeHighlightNode,
+    treeData,
+    treeActiveEntry,
+    treeContextNode,
+  } from '$stores';
   import { onMount } from 'svelte';
+
+  // TODO track saved / exported
 
   onMount(() => {
     // Set empty tree content
@@ -58,6 +67,8 @@
     // Reset app state
     treeData.set(parsedData);
     treeHighlightNode.set(null);
+    treeActiveEntry.set(null);
+    treeContextNode.set(null);
     regionList.set(parsedData.info.regions);
     activeRegion.set(parsedData.info.activeregion);
   }
