@@ -3,15 +3,15 @@ import { get } from "svelte/store";
 import { rootContentId } from "./constants";
 import { getItemPath } from "./utils";
 
-export class TreeData {
+export class TranslationData {
   info: Info;
   group: Group[];
-  parent: Group | TreeData;
+  parent: Group | TranslationData;
   id: string;
 
-  static emptyTreeData(): TreeData {
+  static emptyTreeData(): TranslationData {
     const emptyInfo = Info.emptyInfo();
-    const empty = new TreeData(emptyInfo);
+    const empty = new TranslationData(emptyInfo);
     const group = new Group(rootContentId, null);
     empty.group.push(group);
     return empty;
@@ -47,11 +47,11 @@ export class Group {
   private _path: string;
   group: Group[] = [];
   entry: Entry[] = [];
-  parent: Group | TreeData;
+  parent: Group | TranslationData;
   meetsFilter: boolean = true;
   deleted: boolean = false;
 
-  constructor(id: string, parent: Group | TreeData) {
+  constructor(id: string, parent: Group | TranslationData) {
     this.parent = parent;
     if (parent) {
       this.parent.group.push(this);
@@ -113,11 +113,11 @@ export class Entry {
 
 export class Region {
   id: string;
-  page: TreePage[];
+  page: Page[];
 
   static newEmptyRegion(id: string): Region {
     const region = new Region(id);
-    const page = new TreePage('');
+    const page = new Page('');
     region.page.push(page);
     return region;
   }
@@ -128,7 +128,7 @@ export class Region {
   }
 }
 
-export class TreePage {
+export class Page {
   text: string;
 
   constructor(text: string) {

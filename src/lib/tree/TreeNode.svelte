@@ -1,7 +1,7 @@
 <script lang="ts">
   import { electronDispatch, ElectronEvent } from '$modules/electron';
   import { TreeEvent, treeEventDispatcher, type TreeNodeItem } from '$modules/tree';
-  import type { TreeEntry } from '$modules/treeData';
+  import type { Entry } from '$modules/translationData';
   import { getRegionFromEntry } from '$modules/utils';
   import { activeRegion, treeActiveEntry, treeActiveNode, treeContextNode } from '$stores';
   import { onDestroy } from 'svelte';
@@ -17,7 +17,7 @@
   $: active = activeEntryInChildren(item, $treeActiveEntry);
   $: onItemChanged(item);
 
-  function onRefreshEntry(entry: TreeEntry) {
+  function onRefreshEntry(entry: Entry) {
     if (!item || !entry || !item.entry || item.entry !== entry) {
       return;
     }
@@ -25,7 +25,7 @@
     onItemChanged(item);
   }
 
-  function activeEntryInChildren(node: TreeNodeItem, active: TreeEntry): boolean {
+  function activeEntryInChildren(node: TreeNodeItem, active: Entry): boolean {
     if (!active || !node) {
       return;
     }

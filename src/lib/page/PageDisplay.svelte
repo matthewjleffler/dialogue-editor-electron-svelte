@@ -1,65 +1,73 @@
 <script lang="ts">
-  import { displayConfirmPrompt } from '$modules/prompt';
-  import { TreeEvent, treeEventDispatcher } from '$modules/tree';
-  import type { TreePage, TreeRegion } from '$modules/treeData';
-  import { getRegionFromEntry, replaceAll } from '$modules/utils';
-  import { activeRegion, treeActiveEntry } from '$stores';
-  import Page from './Page.svelte';
+  import type { Page } from '$modules/translationData';
+  import { replaceAll } from '$modules/utils';
+  import { createEventDispatcher } from 'svelte';
 
-  let pages: TreePage[];
+  export let page: Page;
+  export let index: number;
+  let value: string;
+  let charCount: number;
+  let deleteButton: HTMLButtonElement;
 
-  $: region = getRegionFromEntry($treeActiveEntry, $activeRegion);
-  $: getPagesForRegion(region);
+  // TODO spellcheck not working
 
-  function entryChanged() {
-    getPagesForRegion(region);
-    treeEventDispatcher.dispatch(TreeEvent.RefreshEntry, $treeActiveEntry);
+  const escapedNewline = '\\n';
+  const htmlNewline = '\n';
+  const eventAddNewPage = 'addpage';
+  const eventDeletePage = 'deletepage';
+  const dispatcher = createEventDispatcher();
+
+  $: updatePageData(page);
+  $: onValueChange(value);
+
+  function updatePageData(page: Page) {
+    const newRaw = page.text ?? '';
+    const unEscaped = replaceAll(newRaw, escapedNewline, htmlNewline);
+    value = unEscaped;
   }
 
-  function getPagesForRegion(region: TreeRegion) {
-    pages = region?.page;
+  function onValueChange(newValue: string) {
+    value = newValue ?? '';
+    charCount = value.length;
+
+    const escapedText = replaceAll(newValue, htmlNewline, escapedNewline);
+    page.text = escapedText;
   }
 
-  function pushNewPage(event: CustomEvent) {
-    if (!pages) {
-      return;
-    }
-    const index: number = event.detail;
-    pages.splice(index, 0, { text: '' });
-    entryChanged();
+  function onClickAddPrev() {
+    dispatcher(eventAddNewPage, index);
   }
 
-  async function deletePage(event: CustomEvent) {
-    if (!pages) {
-      return;
-    }
-    if (pages.length <= 1) {
-      await displayConfirmPrompt('Invalid Action', `Can't delete last page in an entry.`, 'Okay');
-      return;
-    }
+  function onClickAddNext() {
+    dispatcher(eventAddNewPage, index + 1);
+  }
 
-    const index: number = event.detail;
-    const newline = replaceAll(pages[index].text, '\\n', '<br>');
-    const result = await displayConfirmPrompt(
-      'Delete Page?',
-      `Are you sure you want to delete page ${index + 1}?<br><br>"${newline}"`,
-      'Yes',
-      'No',
-    );
-    if (result === 1) {
-      // No
-      return;
-    }
-
-    pages.splice(index, 1);
-    entryChanged();
+  function onClickDelete() {
+    deleteButton.blur(); // Unfocus to prevent repeated enter presses in the modal
+    dispatcher(eventDeletePage, index);
   }
 </script>
 
-<div class="flex overflow-auto mt-2 p-2 pt-0 pr-2 gap-2 flex-wrap flex-row">
-  {#if pages}
-    {#each pages as page, index}
-      <Page {page} {index} on:addpage={pushNewPage} on:deletepage={deletePage} />
-    {/each}
-  {/if}
+<div class="flex flex-col">
+  <div class="flex flex-row">
+    <p class="w-1/2">Page {index + 1}</p>
+    <p class="w-1/2">Characters {charCount}</p>
+  </div>
+  <textarea
+    bind:value
+    spellcheck={true}
+    maxlength={37 * 7}
+    class="w-[268px] h-[85px] bg-page-back resize-none box-border font-mono border-none outline-none my-1"
+  />
+  <div class="flex flex-row justify-between">
+    <button on:click={onClickAddPrev}>{'<+'}</button>
+    <button bind:this={deleteButton} on:click={onClickDelete}>{'X'}</button>
+    <button on:click={onClickAddNext}>{'+>'}</button>
+  </div>
 </div>
+
+<style lang="postcss">
+  button {
+    @apply bg-search-close-grey px-2 align-text-top rounded-sm text-xs;
+  }
+</style>

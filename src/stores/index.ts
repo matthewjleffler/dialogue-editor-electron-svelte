@@ -1,8 +1,8 @@
 import type { TreeNodeItem } from "$modules/tree";
-import { TreeData, type Entry } from "$modules/treeData";
+import { TranslationData, type Entry } from "$modules/translationData";
 import { writable } from "svelte/store";
 
-export const treeData = writable<TreeData>(TreeData.emptyTreeData());
+export const treeData = writable<TranslationData>(TranslationData.emptyTreeData());
 export const treeActiveNode = writable<TreeNodeItem>(null);
 export const treeActiveEntry = writable<Entry>(null);
 export const treeContextNode = writable<TreeNodeItem>(null);

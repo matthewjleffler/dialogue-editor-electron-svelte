@@ -3,7 +3,7 @@
   import { ElectronEvent, electronListen } from '$modules/electron';
   import { displayConfirmPrompt, displayTextPrompt } from '$modules/prompt';
   import { TreeEvent, treeEventDispatcher, TreeNodeItem } from '$modules/tree';
-  import { Entry, type TreeData, Group } from '$modules/treeData';
+  import { Entry, type TranslationData, Group } from '$modules/translationData';
   import { arrayRemove, getRegionFromEntry } from '$modules/utils';
   import {
     activeRegion,
@@ -229,7 +229,7 @@
   }
 
   function onDupliateId() {
-    const node = $treeContextNode;
+    // const node = $treeContextNode;
 
     // TODO this
     console.log('DUPLICATE ID');
@@ -256,8 +256,7 @@
         clearContextAndSort();
         return;
       }
-      node.module = value;
-      node.group.id = value;
+      node.group.setId(value);
 
       clearContextAndSort();
     } else {
@@ -271,7 +270,6 @@
         clearContextAndSort();
         return;
       }
-      node.module = value;
       node.entry.setId(value);
       treeActiveEntry.set(node.entry);
 
@@ -279,7 +277,7 @@
     }
   }
 
-  function buildTree(constructedTree: TreeData, filterId: string, filterText: string) {
+  function buildTree(constructedTree: TranslationData, filterId: string, filterText: string) {
     const rootGroup = constructedTree.group[0];
     const rootTree = TreeNodeItem.fromTreeGroup(rootGroup, null, false);
     const count: Count = { num: 0 };

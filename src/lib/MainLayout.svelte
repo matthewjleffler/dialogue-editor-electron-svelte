@@ -1,6 +1,6 @@
 <script lang="ts">
   import { leftPaneWidth } from '$modules/constants';
-  import PageDisplay from '$lib/page/PageDisplay.svelte';
+  import PageView from '$lib/page/PageView.svelte';
   import SearchBar from '$lib/utils/SearchBar.svelte';
   import TreeView from '$lib/tree/TreeView.svelte';
   import { filterId, filterText } from '$stores';
@@ -23,6 +23,6 @@
   </div>
   <div class="flex flex-col flex-1 p-1 bg-right-grey h-full">
     <SearchBar search={'Text'} on:change={onSearchText} />
-    <PageDisplay />
+    <PageView />
   </div>
 </div>

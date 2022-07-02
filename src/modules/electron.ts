@@ -1,5 +1,5 @@
 import { browser } from "$app/env";
-import type { TreeData } from "./treeData";
+import type { TranslationData } from "./translationData";
 
 type Listener = (...values: unknown[]) => void;
 
@@ -12,7 +12,7 @@ export interface SaveRequest {
 
 export interface SaveMessage {
   request: SaveRequest,
-  data: TreeData,
+  data: TranslationData,
 }
 
 export enum ElectronEvent {
@@ -30,6 +30,7 @@ export enum ElectronEvent {
   ContextTreeDelete = 'context-tree-delete',
   TreeChange = 'tree-change',
   GetProjectExport = 'get-project-export',
+  EventNewProject = 'event-new-project',
 }
 
 export const electronDispatch = function (event: ElectronEvent, ...values: unknown[]) {

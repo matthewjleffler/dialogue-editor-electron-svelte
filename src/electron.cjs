@@ -27,6 +27,7 @@ const EVENT_CONTEXT_TREE_PASTE = 'context-tree-paste';
 const EVENT_CONTEXT_TREE_DELETE = 'context-tree-delete';
 const EVENT_TREE_CHANGE = 'tree-change';
 const EVENT_GET_PROJECT_EXPORT = 'get-project-export';
+const EVENT_NEW_PROJECT = 'event-new-project';
 
 const serveURL = serve({ directory: "." });
 const port = process.env.PORT || 3000;
@@ -214,6 +215,10 @@ async function openProject() {
   currentProjectPath = result.filePaths[0];
   writeProjectPath();
   finishOpenProject();
+}
+
+function newProject() {
+  dispatchToApp(EVENT_NEW_PROJECT);
 }
 
 function requestSave(doSaveAs, doExport) {
@@ -421,7 +426,8 @@ function generateMenu() {
       submenu: [
         {
           label: "New Project",
-          // TODO new project
+          accelerator: "CmdOrCtrl+N",
+          click: newProject,
         },
         {
           label: "Open Project",

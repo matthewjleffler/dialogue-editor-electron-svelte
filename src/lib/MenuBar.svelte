@@ -2,7 +2,7 @@
   import { leftPaneWidth } from '$modules/constants';
   import { displayTextPrompt } from '$modules/prompt';
   import { TreeEvent, treeEventDispatcher } from '$modules/tree';
-  import { Region, type Group } from '$modules/treeData';
+  import { Region, type Group } from '$modules/translationData';
   import { activeRegion, regionList, treeActiveEntry, treeData } from '$stores';
 
   interface Option {

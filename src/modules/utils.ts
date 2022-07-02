@@ -1,15 +1,5 @@
 import { rootContentId } from "./constants";
-import type { TreeData, Entry, Group, Region } from "./treeData";
-
-export function getArrayProperty<T>(property: T | T[]): T[] {
-  if (property === undefined) {
-    return null;
-  }
-  if (Array.isArray(property)) {
-    return property;
-  }
-  return [property];
-}
+import type { TranslationData, Entry, Group, Region } from "./translationData";
 
 export function arrayRemove<T>(array: T[], value: T) {
   if (!array || array.length < 1) {
@@ -37,7 +27,7 @@ export function getRegionFromEntry(entry: Entry, regionId: string): Region {
   return null;
 }
 
-export function getItemPath(entry: TreeData | Group | Entry): string {
+export function getItemPath(entry: TranslationData | Group | Entry): string {
   if (entry.parent === undefined || entry.id === rootContentId) {
     return '';
   }
