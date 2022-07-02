@@ -1,12 +1,12 @@
 <script lang="ts">
   import { ElectronEvent, electronListen } from '$modules/electron';
-  import { unsavedExport, unsavedProject } from '$stores';
+  import { projectTitle, unsavedExport, unsavedProject } from '$stores';
   import { onMount } from 'svelte';
   import '../app.css';
 
   let ready: boolean = false;
 
-  $: title = updateTitle($unsavedProject, $unsavedExport);
+  $: title = updateTitle($projectTitle, $unsavedProject, $unsavedExport);
 
   onMount(() => (ready = true));
 
@@ -16,11 +16,12 @@
     console.log(message, ...args);
   }
 
-  function updateTitle(unsavedProject: boolean, unsavedExport: boolean): string {
-    const title = `Dialogue Editor${unsavedProject ? ' [Unsaved]' : ''}${
-      unsavedExport ? ' [Unexported]' : ''
-    }`;
-    return title;
+  function updateTitle(title: string, unsavedProject: boolean, unsavedExport: boolean): string {
+    const unsaved = unsavedProject || unsavedExport;
+    const result = `Dialogue Editor - ${title}${unsaved ? ' -' : ''}${
+      unsavedProject ? ' [Unsaved]' : ''
+    }${unsavedExport ? ' [Unexported]' : ''}`;
+    return result;
   }
 </script>
 

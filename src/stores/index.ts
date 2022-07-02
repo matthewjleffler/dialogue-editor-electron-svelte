@@ -10,6 +10,7 @@ export const regionList = writable<string[]>(null);
 export const activeRegion = writable<string>(null);
 export const filterId = writable<string>('');
 export const filterText = writable<string>('');
+export const projectTitle = writable<string>('');
 export const unsavedProject = writable<boolean>(false);
 export const unsavedExport = writable<boolean>(false);
 

@@ -21,6 +21,11 @@ interface Localization {
   HeaderDeletePage: string,
   PromptDeletePage: string,
 
+  HeaderNewProject: string,
+  HeaderRenameProject: string,
+  PromptProjectName: string,
+  ProjectName: string,
+
   HeaderNewEntry: string,
   HeaderNewGroup: string,
   HeaderNewRegion: string,
@@ -60,6 +65,11 @@ const en: Localization = {
 
   HeaderDeletePage: 'Delete Page?',
   PromptDeletePage: 'Are you sure you want to delete page',
+
+  HeaderNewProject: 'Create New Project?',
+  HeaderRenameProject: 'Rename Project',
+  PromptProjectName: 'Enter project title:',
+  ProjectName: 'Project Title',
 
   HeaderNewEntry: 'New Entry',
   HeaderNewGroup: 'New Group',

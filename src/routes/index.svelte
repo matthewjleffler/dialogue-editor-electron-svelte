@@ -3,6 +3,7 @@
   import MenuBar from '$lib/MenuBar.svelte';
   import ConfirmPromptModal from '$lib/utils/ConfirmPromptModal.svelte';
   import TextPromptModal from '$lib/utils/TextPromptModal.svelte';
+  import { defaultProjectTitle } from '$modules/constants';
   import {
     electronDispatch,
     ElectronEvent,
@@ -11,6 +12,8 @@
     type SaveRequest,
   } from '$modules/electron';
   import { dataToExportXml, dataToProjectXml } from '$modules/export';
+  import { L } from '$modules/localization';
+  import { displayConfirmPrompt, displayTextPrompt } from '$modules/prompt';
   import { TranslationData } from '$modules/translationData';
   import { parseXmlRoot, type XmlRoot } from '$modules/xml';
   import {
@@ -22,6 +25,9 @@
     treeContextNode,
     unsavedExport,
     unsavedProject,
+    setUndoPoint,
+    projectTitle,
+    setUnsaved,
   } from '$stores';
   import { onMount } from 'svelte';
 
@@ -32,6 +38,7 @@
     electronListen(ElectronEvent.TreeChange, onTreeDataChanged);
     electronListen(ElectronEvent.GetProjectExport, onGetProjectExportRequest);
     electronListen(ElectronEvent.EventNewProject, onNewProject);
+    electronListen(ElectronEvent.EventRenameProject, onRenameProject);
     electronListen(ElectronEvent.EventUndo, onUndo);
     electronListen(ElectronEvent.EventRedo, onRedo);
     electronDispatch(ElectronEvent.ReloadLastProject);
@@ -45,9 +52,43 @@
     console.log('redo!');
   }
 
-  function onNewProject() {
-    // TODO New Project
-    console.log('New project request');
+  async function onNewProject() {
+    const title = await displayTextPrompt(
+      L.HeaderNewProject,
+      defaultProjectTitle,
+      L.PromptProjectName,
+      L.ProjectName,
+    );
+    if (!title || title.length < 1) {
+      return;
+    }
+
+    setUndoPoint();
+
+    const newProject = TranslationData.emptyData();
+    newProject.info.name = title;
+    setNewTree(newProject);
+  }
+
+  async function onRenameProject() {
+    const info = $treeData.info;
+
+    const title = await displayTextPrompt(
+      L.HeaderRenameProject,
+      info.name,
+      L.PromptProjectName,
+      L.ProjectName,
+    );
+    if (!title || title.length < 1) {
+      return;
+    }
+
+    setUndoPoint();
+
+    info.name = title;
+    projectTitle.set(title);
+
+    setUnsaved();
   }
 
   function onGetProjectExportRequest(request: SaveRequest) {
@@ -68,16 +109,20 @@
     if (!parsedData) {
       return;
     }
-
     // Reset app state
-    treeData.set(parsedData);
+    setNewTree(parsedData);
+  }
+
+  function setNewTree(tree: TranslationData) {
+    treeData.set(tree);
     treeHighlightNode.set(null);
     treeActiveEntry.set(null);
     treeContextNode.set(null);
-    regionList.set(parsedData.info.regions);
-    activeRegion.set(parsedData.info.activeregion);
+    regionList.set(tree.info.regions);
+    activeRegion.set(tree.info.activeregion);
     unsavedExport.set(false);
     unsavedProject.set(false);
+    projectTitle.set(tree.info.name);
   }
 </script>
 

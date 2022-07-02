@@ -1,6 +1,6 @@
 import { regionList } from "$stores";
 import { get } from "svelte/store";
-import { rootContentId } from "./constants";
+import { defaultProjectTitle, rootContentId } from "./constants";
 import { getItemPath } from "./utils";
 
 export class TranslationData {
@@ -28,7 +28,7 @@ export class Info {
   name: string;
 
   static emptyInfo(): Info {
-    const empty = new Info('1.0', 'en', ['en'], 'translation');
+    const empty = new Info('1.0', 'en', ['en'], defaultProjectTitle);
     return empty;
   }
 

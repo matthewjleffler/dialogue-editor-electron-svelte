@@ -28,6 +28,7 @@ const EVENT_CONTEXT_TREE_DELETE = 'context-tree-delete';
 const EVENT_TREE_CHANGE = 'tree-change';
 const EVENT_GET_PROJECT_EXPORT = 'get-project-export';
 const EVENT_NEW_PROJECT = 'event-new-project';
+const EVENT_RENAME_PROJECT = 'event-rename-project';
 const EVENT_UNDO = 'event-undo';
 const EVENT_REDO = 'event-redo';
 
@@ -223,6 +224,10 @@ function newProject() {
   dispatchToApp(EVENT_NEW_PROJECT);
 }
 
+function renameProject() {
+  dispatchToApp(EVENT_RENAME_PROJECT);
+}
+
 function requestSave(doSaveAs, doExport) {
   dispatchToApp(EVENT_GET_PROJECT_EXPORT, { msg: { doSaveAs: doSaveAs, doExport: doExport } });
 }
@@ -317,6 +322,10 @@ function generateMenu() {
           click: saveProjectAs,
         },
         {
+          label: 'Rename Project',
+          click: renameProject,
+        },
+        {
           type: 'separator',
         },
         // {
@@ -350,7 +359,7 @@ function generateMenu() {
     },
     {
       role: 'window',
-      submenu: [{ role: 'minimize' }, { role: 'close' }],
+      submenu: [{ role: 'minimize' }],
     }
   ];
 

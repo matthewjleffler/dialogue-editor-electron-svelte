@@ -31,6 +31,7 @@ export enum ElectronEvent {
   TreeChange = 'tree-change',
   GetProjectExport = 'get-project-export',
   EventNewProject = 'event-new-project',
+  EventRenameProject = 'event-rename-project',
   EventUndo = 'event-undo',
   EventRedo = 'event-redo',
 }
