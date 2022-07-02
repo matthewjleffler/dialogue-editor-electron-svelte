@@ -15,7 +15,7 @@
 
 <div class="absolute flex flex-col w-full top-0 bottom-0">
   <div class="drag z-[100] h-[28px] leading-[28px] w-full text-center">
-    <p class="text-white m-0">Dialogue Editor</p>
+    <p class="text-white m-0 select-none">Dialogue Editor</p>
   </div>
 
   <div class="relative w-full h-full">

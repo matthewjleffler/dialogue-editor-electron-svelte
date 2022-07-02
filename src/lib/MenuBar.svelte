@@ -4,6 +4,7 @@
   import { TreeEvent, treeEventDispatcher } from '$modules/tree';
   import { Region, type Group } from '$modules/translationData';
   import { activeRegion, regionList, treeActiveEntry, treeData } from '$stores';
+  import { L } from '$modules/localization';
 
   interface Option {
     value: string;
@@ -63,10 +64,10 @@
     selectedValue = $activeRegion;
 
     const newRegion = await displayTextPrompt(
-      'New Region Id',
+      L.HeaderNewRegion,
       '',
-      'Enter new Region Id:',
-      'Region Id',
+      L.PromptRegionName,
+      L.RegionName,
     );
     if (!newRegion) {
       // No change

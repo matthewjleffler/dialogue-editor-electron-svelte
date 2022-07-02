@@ -5,6 +5,7 @@
   import { getRegionFromEntry, replaceAll } from '$modules/utils';
   import { activeRegion, treeActiveEntry } from '$stores';
   import PageDisplay from './PageDisplay.svelte';
+  import { L } from '$modules/localization';
 
   let pages: Page[];
 
@@ -34,17 +35,17 @@
       return;
     }
     if (pages.length <= 1) {
-      await displayConfirmPrompt('Invalid Action', `Can't delete last page in an entry.`, 'Okay');
+      await displayConfirmPrompt(L.InvalidAction, L.InvalidDeleteLastPage, L.Okay);
       return;
     }
 
     const index: number = event.detail;
     const newline = replaceAll(pages[index].text, '\\n', '<br>');
     const result = await displayConfirmPrompt(
-      'Delete Page?',
-      `Are you sure you want to delete page ${index + 1}?<br><br>"${newline}"`,
-      'Yes',
-      'No',
+      L.HeaderDeletePage,
+      `${L.PromptDeletePage} ${index + 1}?<br><br>"${newline}"`,
+      L.Yes,
+      L.No,
     );
     if (result === 1) {
       // No

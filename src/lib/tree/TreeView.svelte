@@ -16,6 +16,7 @@
   } from '$stores';
   import { onDestroy, onMount } from 'svelte';
   import TreeNode from './TreeNode.svelte';
+  import { L } from '$modules/localization';
 
   interface Count {
     num: number;
@@ -78,10 +79,10 @@
 
     validatorParent = node.group;
     const value = await displayTextPrompt(
-      'New Group',
+      L.HeaderNewGroup,
       '',
-      'Enter group name',
-      'Group name',
+      L.PromptGroupName,
+      L.GroupName,
       groupIdValidator,
     );
     if (!value) {
@@ -124,7 +125,7 @@
     }
 
     // Display prompt
-    const result = await displayConfirmPrompt(header, promptValue, 'Yes', 'No');
+    const result = await displayConfirmPrompt(header, promptValue, L.Yes, L.No);
     if (result > 0) {
       // Rejected
       clearContextAndSort();
@@ -159,7 +160,7 @@
 
     // Display prompt
     const entry = node.entry;
-    const result = await displayConfirmPrompt(header, `${prompt} "${entry.id}"?`, 'Yes', 'No');
+    const result = await displayConfirmPrompt(header, `${prompt} "${entry.id}"?`, L.Yes, L.No);
     if (result > 0) {
       // Rejected
       clearContextAndSort();
@@ -185,15 +186,15 @@
     treeHighlightNode.set(node);
 
     if (!node.parent) {
-      await displayConfirmPrompt('Invalid Action', 'Cannot delete root group.', 'Okay');
+      await displayConfirmPrompt(L.InvalidAction, L.InvalidDeleteRoot, L.Okay);
       clearContextAndSort();
       return;
     }
 
     if (node.group) {
-      promptDeleteGroup(node, 'Delete Group?', 'Are you sure you want to delete the group');
+      promptDeleteGroup(node, L.HeaderDeleteGroup, L.PromptDeleteGroup);
     } else {
-      promptDeleteEntry(node, 'Delete Entry?', 'Are you sure you want to delete the entry');
+      promptDeleteEntry(node, L.HeaderDeleteEntry, L.PromptDeleteEntry);
     }
   }
 
@@ -202,7 +203,7 @@
     treeHighlightNode.set(node);
 
     if (!node.parent) {
-      await displayConfirmPrompt('Invalid Action', 'Cannot cut root group.', 'Okay');
+      await displayConfirmPrompt(L.InvalidAction, L.InvalidCutRoot, L.Okay);
       clearContextAndSort();
       return;
     }
@@ -233,7 +234,7 @@
   async function onCopy() {
     const node = $treeContextNode;
     if (node.group && node.group.id === rootContentId) {
-      await displayConfirmPrompt('Invalid Action', 'Cannot copy root group', 'Okay');
+      await displayConfirmPrompt(L.InvalidAction, L.InvalidCopyRoot, L.Okay);
       return;
     }
 
@@ -244,7 +245,7 @@
 
   async function onPaste() {
     if (!copyBuffer) {
-      await displayConfirmPrompt('Invalid Action', 'Nothing to paste', 'Okay');
+      await displayConfirmPrompt(L.InvalidAction, L.InvalidNothingToPaste, L.Okay);
       return;
     }
 
@@ -256,7 +257,7 @@
 
     // Check to be sure we're not pasting an entry into the root
     if (copyBuffer.entry && node.group && node.group.id === rootContentId) {
-      await displayConfirmPrompt('Invalid Action', 'Cannot paste entry into root group', 'Okay');
+      await displayConfirmPrompt(L.InvalidAction, L.InvalidEntryInRoot, L.Okay);
       return;
     }
 
@@ -281,17 +282,17 @@
     treeHighlightNode.set(node);
 
     if (node.parent === null) {
-      await displayConfirmPrompt('Invalid Action', 'Cannot add entries to root group.', 'Okay');
+      await displayConfirmPrompt(L.InvalidAction, L.InvalidEntryInRoot, L.Okay);
       clearContextAndSort();
       return;
     }
 
     validatorParent = node.group;
     const value = await displayTextPrompt(
-      'New Entry',
+      L.HeaderNewEntry,
       '',
-      'Enter Entry Name:',
-      'Entry Name',
+      L.PromptEntryName,
+      L.EntryName,
       entryIdValidator,
     );
     if (!value) {
@@ -309,7 +310,7 @@
   async function onDupliateId() {
     const node = $treeContextNode;
     if (node.group && node.group.id === rootContentId) {
-      await displayConfirmPrompt('Invalid Action', 'Cannot duplicate root group', 'Okay');
+      await displayConfirmPrompt(L.InvalidAction, L.InvalidCopyRoot, L.Okay);
       return;
     }
 
@@ -385,16 +386,16 @@
 
     if (node.group) {
       if (node.parent == null) {
-        await displayConfirmPrompt('Invalid Action', 'Cannot rename root group.', 'Okay');
+        await displayConfirmPrompt(L.InvalidAction, L.InvalidRenameRoot, L.Okay);
         clearContextAndSort();
         return;
       }
       validatorParent = node.group.parent;
       const value = await displayTextPrompt(
-        'Rename Group',
+        L.HeaderRenameGroup,
         node.group.id,
-        'Enter group name:',
-        'Group name',
+        L.PromptGroupName,
+        L.GroupName,
         groupIdValidator,
       );
       if (!value) {
@@ -407,10 +408,10 @@
     } else {
       validatorParent = node.entry.parent;
       const value = await displayTextPrompt(
-        'Rename Entry',
+        L.HeaderRenameEntry,
         node.entry.id,
-        'Enter entry name:',
-        'Entry name',
+        L.PromptEntryName,
+        L.EntryName,
         entryIdValidator,
       );
       if (!value) {
