@@ -57,7 +57,7 @@ function createWindow() {
       enableRemoteModule: true,
       contextIsolation: true,
       nodeIntegration: true,
-      spellcheck: false,
+      spellcheck: true,
       devTools: dev,
       preload: path.join(__dirname, "preload.cjs")
     },

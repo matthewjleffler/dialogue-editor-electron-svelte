@@ -10,8 +10,6 @@
   let charCount: number;
   let deleteButton: HTMLButtonElement;
 
-  // TODO spellcheck not working
-
   const escapedNewline = '\\n';
   const htmlNewline = '\n';
   const eventAddNewPage = 'addpage';
