@@ -1,15 +1,5 @@
 import { rootContentId } from "./constants";
-import type { TranslationData, Entry, Group, Region } from "./translationData";
-
-export function arrayRemove<T>(array: T[], value: T) {
-  if (!array || array.length < 1) {
-    return;
-  }
-  let index: number;
-  while ((index = array.indexOf(value)) > -1) {
-    array.splice(index, 1);
-  }
-}
+import type { Entry, Group, Region } from "./translationData";
 
 export function getRegionFromEntry(entry: Entry, regionId: string): Region {
   if (!entry) {
@@ -27,8 +17,8 @@ export function getRegionFromEntry(entry: Entry, regionId: string): Region {
   return null;
 }
 
-export function getItemPath(entry: TranslationData | Group | Entry): string {
-  if (entry.parent === undefined || entry.id === rootContentId) {
+export function getItemPath(entry: Group | Entry): string {
+  if (!entry.parent || entry.id === rootContentId) {
     return '';
   }
   const parentPath = getItemPath(entry.parent);
@@ -52,7 +42,6 @@ export function splitTrailingNumerals(original: string): [string, number] {
     const value = parseInt(numerals);
     return [trimmed, value];
   } else {
-    console.log('No numerals');
     return [original, 0];
   }
 }

@@ -1,5 +1,5 @@
 import { EventDispatcher } from "./eventDispatcher";
-import type { Entry, Group } from "./translationData";
+import { Entry, Group } from "./translationData";
 
 export class TreeNodeItem {
   parent: TreeNodeItem;
@@ -29,6 +29,21 @@ export class TreeNodeItem {
     return newItem;
   }
 
+  static fromCopy(original: TreeNodeItem, parentGroup: Group, parentNode: TreeNodeItem): TreeNodeItem {
+    // Copy contents first
+    if (original.entry) {
+      // Entry
+      const copyEntry = Entry.copyTo(original.entry, parentGroup)
+      const copy = TreeNodeItem.fromEntry(copyEntry, parentNode, false);
+      return copy;
+    } else {
+      // Group
+      const copyGroup = Group.copyTo(original.group, parentGroup);
+      const copy = TreeNodeItem.fromGroup(copyGroup, parentNode, false);
+      return copy;
+    }
+  }
+
   get module(): string {
     if (this.group) {
       return this.group.id;
@@ -37,6 +52,17 @@ export class TreeNodeItem {
       return this.entry.id;
     }
     return 'invalid-node';
+  }
+
+  removeChild(node: TreeNodeItem) {
+    if (!this.children) {
+      return;
+    }
+    const index = this.children.indexOf(node);
+    if (index < 0) {
+      return;
+    }
+    this.children.splice(index, 1);
   }
 };
 

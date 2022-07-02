@@ -10,11 +10,15 @@
     type SaveMessage,
     type SaveRequest,
   } from '$modules/electron';
+  import { TranslationData } from '$modules/translationData';
   import { parseXmlRoot, type XmlRoot } from '$modules/xmlData';
   import { activeRegion, regionList, treeHighlightNode, treeData } from '$stores';
   import { onMount } from 'svelte';
 
   onMount(() => {
+    // Set empty tree content
+    treeData.set(TranslationData.emptyData());
+
     electronListen(ElectronEvent.TreeChange, onTreeDataChanged);
     electronListen(ElectronEvent.GetProjectExport, onGetProjectExportRequest);
     electronListen(ElectronEvent.EventNewProject, onNewProject);

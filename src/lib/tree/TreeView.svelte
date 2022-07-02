@@ -4,7 +4,7 @@
   import { displayConfirmPrompt, displayTextPrompt } from '$modules/prompt';
   import { TreeEvent, treeEventDispatcher, TreeNodeItem } from '$modules/tree';
   import { Entry, type TranslationData, Group } from '$modules/translationData';
-  import { arrayRemove, getRegionFromEntry, splitTrailingNumerals } from '$modules/utils';
+  import { getRegionFromEntry, splitTrailingNumerals } from '$modules/utils';
   import {
     activeRegion,
     filterId,
@@ -25,6 +25,7 @@
 
   let tree: TreeNodeItem;
   let validatorParent: Group;
+  let copyBuffer: TreeNodeItem;
 
   const cleanupRefresh = treeEventDispatcher.addListener(TreeEvent.RefreshTree, onRefresh);
   $: buildTree($treeData, $filterId, $filterText);
@@ -65,20 +66,6 @@
     tree = tree;
   }
 
-  function iterateGroups(
-    parent: Group,
-    groupAction: (group: Group) => void,
-    entryAction: (entry: Entry) => void,
-  ) {
-    for (const group of parent.group) {
-      groupAction(group);
-      iterateGroups(group, groupAction, entryAction);
-    }
-    for (const entry of parent.entry) {
-      entryAction(entry);
-    }
-  }
-
   async function onNewGroup() {
     let node = $treeContextNode;
     // Build new group and module representing that group
@@ -108,101 +95,179 @@
     clearContextAndSort();
   }
 
+  async function promptDeleteGroup(
+    node: TreeNodeItem,
+    header: string,
+    prompt: string,
+  ): Promise<TreeNodeItem> {
+    if (!node.group) {
+      return null;
+    }
+
+    // Create copy to ready return
+    const copy = TreeNodeItem.fromCopy(node, null, null);
+
+    // Build prompt
+    const group = node.group;
+    const [groupCount, entryCount] = group.count();
+
+    let promptValue = `${prompt} "${group.id}"?<br>`;
+    if (groupCount === 1) {
+      promptValue += `<br>Contains 1 child group`;
+    } else if (groupCount > 1) {
+      promptValue += `<br>Contains ${groupCount} child groups`;
+    }
+    if (entryCount === 1) {
+      promptValue += `<br>Contains 1 entry`;
+    } else if (entryCount > 1) {
+      promptValue += `<br>Contains ${entryCount} entries`;
+    }
+
+    // Display prompt
+    const result = await displayConfirmPrompt(header, promptValue, 'Yes', 'No');
+    if (result > 0) {
+      // Rejected
+      clearContextAndSort();
+      return null;
+    }
+
+    // Handle deletion
+    group.markDeleted();
+    group.parent.removeGroup(group);
+    node.parent.removeChild(node);
+    const activeEntry = $treeActiveEntry;
+    if (activeEntry && activeEntry.deleted === true) {
+      treeActiveEntry.set(null);
+    }
+    clearContextAndSort();
+
+    // Return copy
+    return copy;
+  }
+
+  async function promptDeleteEntry(
+    node: TreeNodeItem,
+    header: string,
+    prompt: string,
+  ): Promise<TreeNodeItem> {
+    if (!node.entry) {
+      return null;
+    }
+
+    // Create copy to ready return
+    const copy = TreeNodeItem.fromCopy(node, null, null);
+
+    // Display prompt
+    const entry = node.entry;
+    const result = await displayConfirmPrompt(header, `${prompt} "${entry.id}"?`, 'Yes', 'No');
+    if (result > 0) {
+      // Rejected
+      clearContextAndSort();
+      return;
+    }
+
+    // Handle deletion
+    const activeEntry = $treeActiveEntry;
+    if (activeEntry === entry) {
+      treeActiveEntry.set(null);
+    }
+    entry.parent.removeEntry(entry);
+    node.parent.removeChild(node);
+
+    clearContextAndSort();
+
+    // Return copy
+    return copy;
+  }
+
   async function onDelete() {
     const node = $treeContextNode;
-    const activeEntry = $treeActiveEntry;
-
-    // Highlight
     treeHighlightNode.set(node);
 
+    if (!node.parent) {
+      await displayConfirmPrompt('Invalid Action', 'Cannot delete root group.', 'Okay');
+      clearContextAndSort();
+      return;
+    }
+
     if (node.group) {
-      if (node.parent === null) {
-        await displayConfirmPrompt('Invalid Action', 'Cannot delete root group.', 'Okay');
-        clearContextAndSort();
-        return;
-      }
-      const group = node.group;
-      let groupCount = 0;
-      let entryCount = 0;
-      iterateGroups(
-        group,
-        () => {
-          groupCount++;
-        },
-        () => {
-          entryCount++;
-        },
-      );
-
-      let prompt = `Are you sure you want to delete the group "${group.id}"?<br>`;
-      if (groupCount === 1) {
-        prompt += `<br>Contains 1 child group`;
-      } else if (groupCount > 1) {
-        prompt += `<br>Contains ${groupCount} child groups`;
-      }
-      if (entryCount === 1) {
-        prompt += `<br>Contains 1 entry`;
-      } else if (entryCount > 1) {
-        prompt += `<br>Contains ${entryCount} entries`;
-      }
-
-      const result = await displayConfirmPrompt('Delete Group?', prompt, 'Yes', 'No');
-      if (result === 1) {
-        // No
-        clearContextAndSort();
-        return;
-      }
-
-      // Mark children as deleted
-      iterateGroups(
-        group,
-        (childGroup) => {
-          childGroup.deleted = true;
-        },
-        (childEntry) => {
-          childEntry.deleted = true;
-        },
-      );
-
-      arrayRemove(group.parent.group, group);
-      arrayRemove(node.parent.children, node);
-      if (activeEntry && activeEntry.deleted === true) {
-        treeActiveEntry.set(null);
-      }
-
-      clearContextAndSort();
+      promptDeleteGroup(node, 'Delete Group?', 'Are you sure you want to delete the group');
     } else {
-      const entry = node.entry;
-      const result = await displayConfirmPrompt(
-        'Delete Entry?',
-        `Are you sure you want to delete the entry "${entry.id}"?`,
-        'Yes',
-        'No',
-      );
-      if (result === 1) {
-        clearContextAndSort();
-        return;
-      }
-      if (activeEntry === entry) {
-        treeActiveEntry.set(null);
-      }
-      arrayRemove(entry.parent.entry, entry);
-      arrayRemove(node.parent.children, node);
-
-      clearContextAndSort();
+      promptDeleteEntry(node, 'Delete Entry?', 'Are you sure you want to delete the entry');
     }
   }
 
   async function onCut() {
-    // TODO
+    const node = $treeContextNode;
+    treeHighlightNode.set(node);
+
+    if (!node.parent) {
+      await displayConfirmPrompt('Invalid Action', 'Cannot cut root group.', 'Okay');
+      clearContextAndSort();
+      return;
+    }
+
+    if (node.group) {
+      const copy = await promptDeleteGroup(
+        node,
+        'Cut Group?',
+        'Are you sure you want to cut the group',
+      );
+      if (copy) {
+        copyBuffer = copy;
+        console.log('Cut', copyBuffer);
+      }
+    } else {
+      const copy = await promptDeleteEntry(
+        node,
+        'Cuy Entry?',
+        'Are you sure you want to cut the entry',
+      );
+      if (copy) {
+        copyBuffer = copy;
+        console.log('Cut', copyBuffer);
+      }
+    }
   }
 
   async function onCopy() {
-    // TODO
+    const node = $treeContextNode;
+    if (node.group && node.group.id === rootContentId) {
+      await displayConfirmPrompt('Invalid Action', 'Cannot copy root group', 'Okay');
+      return;
+    }
+
+    const copy = TreeNodeItem.fromCopy(node, null, null);
+    copyBuffer = copy;
+    console.log('Copied', copyBuffer);
   }
 
   async function onPaste() {
-    // TODO
+    if (!copyBuffer) {
+      await displayConfirmPrompt('Invalid Action', 'Nothing to paste', 'Okay');
+      return;
+    }
+
+    let node = $treeContextNode;
+    if (node.entry) {
+      // If we're pasting into an entry, paste into its parent group
+      node = node.parent;
+    }
+
+    // Check to be sure we're not pasting an entry into the root
+    if (copyBuffer.entry && node.group && node.group.id === rootContentId) {
+      await displayConfirmPrompt('Invalid Action', 'Cannot paste entry into root group', 'Okay');
+      return;
+    }
+
+    const validName = getNonDuplicateName(copyBuffer, node.group);
+    if (copyBuffer.entry) {
+      // Pasting entry
+      copyEntry(copyBuffer.entry, validName, node.group, node);
+    } else {
+      // Pasting group
+      copyGroup(copyBuffer.group, validName, node.group, node);
+    }
   }
 
   async function onNewEntry() {
@@ -241,8 +306,47 @@
     clearContextAndSort();
   }
 
-  function onDupliateId() {
+  async function onDupliateId() {
     const node = $treeContextNode;
+    if (node.group && node.group.id === rootContentId) {
+      await displayConfirmPrompt('Invalid Action', 'Cannot duplicate root group', 'Okay');
+      return;
+    }
+
+    const validatorGroup = node.entry ? node.entry.parent : node.group.parent;
+    const newId = getNonDuplicateName(node, validatorGroup);
+
+    if (node.entry) {
+      copyEntry(node.entry, newId, node.entry.parent, node.parent);
+    } else {
+      copyGroup(node.group, newId, node.group.parent, node.parent);
+    }
+  }
+
+  function copyEntry(original: Entry, newId: string, group: Group, nodeParent: TreeNodeItem) {
+    nodeParent.collapsed = false;
+    // Create copy and set new id
+    const copy = Entry.copyTo(original, group);
+    copy.setId(newId);
+    // Create node
+    TreeNodeItem.fromEntry(copy, nodeParent, false);
+    treeActiveEntry.set(copy);
+    treeContextNode.set(nodeParent);
+    clearContextAndSort();
+  }
+
+  function copyGroup(original: Group, newId: string, groupParent: Group, nodeParent: TreeNodeItem) {
+    nodeParent.collapsed = false;
+    // Create copy and set new id
+    const copy = Group.copyTo(original, groupParent);
+    copy.setId(newId);
+    // Populate tree
+    buildTreeRecursive(copy, nodeParent, false);
+    treeContextNode.set(nodeParent);
+    clearContextAndSort();
+  }
+
+  function getNonDuplicateName(node: TreeNodeItem, validatorGroup: Group): string {
     const original = node.module;
 
     // Split apart any numerals
@@ -250,14 +354,19 @@
 
     // Set up validators
     let validator: (value: string) => boolean;
+    validatorParent = validatorGroup;
     if (node.entry) {
       // Checking entries
-      validatorParent = node.entry.parent;
       validator = entryIdValidator;
     } else {
       // Checking groups
-      validatorParent = node.group.parent;
       validator = groupIdValidator;
+    }
+
+    // If we don't already have a numeral, we are allowed to keep the original name if it doesn't
+    // conflict
+    if (value < 1 && validator(id)) {
+      return id;
     }
 
     // Step through numbers until we find a valid one
@@ -267,22 +376,7 @@
       newId = `${id}${value}`;
     } while (!validator(newId));
 
-    console.log('Final id', newId);
-    if (node.entry) {
-      // Create copy and set new id
-      const copy = Entry.copyTo(node.entry, node.entry.parent);
-      copy.setId(newId);
-      // Create node
-      TreeNodeItem.fromEntry(copy, node.parent, false);
-    } else {
-      // Create copy and set new id
-      const copy = Group.copyTo(node.group, node.group.parent);
-      copy.setId(newId);
-      // Populate tree
-      buildTreeRecursive(copy, node.parent, false);
-    }
-
-    clearContextAndSort();
+    return newId;
   }
 
   async function onRename() {
@@ -330,8 +424,12 @@
     }
   }
 
-  function buildTree(constructedTree: TranslationData, filterId: string, filterText: string) {
-    const rootGroup = constructedTree.group[0];
+  function buildTree(data: TranslationData, filterId: string, filterText: string) {
+    if (!data) {
+      tree = null;
+      return;
+    }
+    const rootGroup = data.group[0];
     const count: Count = { num: 0 };
     const filteringId = filterId !== '';
     const filteringText = filterText !== '';
@@ -544,5 +642,7 @@
 </script>
 
 <div class="w-full h-full overflow-auto flex flex-col p-1 gap-1 mt-2">
-  <TreeNode item={tree} />
+  {#if tree}
+    <TreeNode item={tree} />
+  {/if}
 </div>

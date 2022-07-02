@@ -6,10 +6,8 @@ import { getItemPath } from "./utils";
 export class TranslationData {
   info: Info;
   group: Group[];
-  parent: Group | TranslationData;
-  id: string;
 
-  static emptyTreeData(): TranslationData {
+  static emptyData(): TranslationData {
     const emptyInfo = Info.emptyInfo();
     const empty = new TranslationData(emptyInfo);
     const group = new Group(rootContentId, null);
@@ -82,6 +80,43 @@ export class Group {
     this._id = value;
     this._path = getItemPath(this);
   }
+
+  count(): [number, number] {
+    let groups = this.group.length;
+    let entries = this.entry.length;
+    for (const group of this.group) {
+      const [gc, ec] = group.count();
+      groups += gc;
+      entries += ec;
+    }
+    return [groups, entries];
+  }
+
+  markDeleted() {
+    this.deleted = true;
+    for (const group of this.group) {
+      group.markDeleted();
+    }
+    for (const entry of this.entry) {
+      entry.deleted = true;
+    }
+  }
+
+  removeGroup(group: Group) {
+    const index = this.group.indexOf(group);
+    if (index < 0) {
+      return;
+    }
+    this.group.splice(index, 1);
+  }
+
+  removeEntry(entry: Entry) {
+    const index = this.entry.indexOf(entry);
+    if (index < 0) {
+      return;
+    }
+    this.entry.splice(index, 1);
+  }
 }
 
 export class Entry {
@@ -113,7 +148,9 @@ export class Entry {
 
   constructor(id: string, parent: Group) {
     this.parent = parent;
-    parent.entry.push(this);
+    if (parent) {
+      this.parent.entry.push(this);
+    }
     this.setId(id);
   }
 
