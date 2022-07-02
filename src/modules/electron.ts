@@ -1,5 +1,4 @@
 import { browser } from "$app/env";
-import type { TranslationData } from "./translationData";
 
 type Listener = (...values: unknown[]) => void;
 
@@ -34,6 +33,7 @@ export enum ElectronEvent {
   EventRenameProject = 'event-rename-project',
   EventUndo = 'event-undo',
   EventRedo = 'event-redo',
+  SetDefaultUndo = 'event-default-undo',
 }
 
 export const electronDispatch = function (event: ElectronEvent, ...values: unknown[]) {

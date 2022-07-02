@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { electronDispatch, ElectronEvent } from '$modules/electron';
+
   import type { Page } from '$modules/translationData';
   import { replaceAll } from '$modules/utils';
   import { setUnsaved } from '$stores';
@@ -32,6 +34,7 @@
     const escapedText = replaceAll(newValue, htmlNewline, escapedNewline);
     const isChanged = escapedText !== page.text;
     if (isChanged) {
+      electronDispatch(ElectronEvent.SetDefaultUndo, true);
       page.text = escapedText;
       setUnsaved(); // Undo/redo is tracked separately for this text element
     }
@@ -49,6 +52,10 @@
     deleteButton.blur(); // Unfocus to prevent repeated enter presses in the modal
     dispatcher(eventDeletePage, index);
   }
+
+  function onBlur() {
+    electronDispatch(ElectronEvent.SetDefaultUndo, false);
+  }
 </script>
 
 <div class="flex flex-col">
@@ -60,6 +67,7 @@
     bind:value
     spellcheck={true}
     maxlength={37 * 7}
+    on:blur={onBlur}
     class="w-[268px] h-[85px] bg-page-back resize-none box-border font-mono border-none outline-none my-1"
   />
   <div class="flex flex-row justify-between">

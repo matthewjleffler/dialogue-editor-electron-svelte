@@ -13,7 +13,7 @@
   } from '$modules/electron';
   import { dataToExportXml, dataToProjectXml } from '$modules/export';
   import { L } from '$modules/localization';
-  import { displayConfirmPrompt, displayTextPrompt } from '$modules/prompt';
+  import { displayTextPrompt } from '$modules/prompt';
   import { TranslationData } from '$modules/translationData';
   import { parseXmlRoot, type XmlRoot } from '$modules/xml';
   import {

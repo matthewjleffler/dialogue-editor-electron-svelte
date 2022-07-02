@@ -31,6 +31,7 @@ const EVENT_NEW_PROJECT = 'event-new-project';
 const EVENT_RENAME_PROJECT = 'event-rename-project';
 const EVENT_UNDO = 'event-undo';
 const EVENT_REDO = 'event-redo';
+const EVENT_DEFAULT_UNDO = 'event-default-undo';
 
 const serveURL = serve({ directory: "." });
 const port = process.env.PORT || 3000;
@@ -121,6 +122,7 @@ app.on('window-all-closed', () => {
 ipcMain.on(EVENT_OPEN_CONTEXT_RIGHT_CLICK, () => treeContextMenu());
 ipcMain.on(EVENT_RECEIVE_PROJECT_EXPORT, (event, arg) => finishSaveProject(arg));
 ipcMain.on(EVENT_RELOAD_LAST_PROJECT, () => readProjectPath());
+ipcMain.on(EVENT_DEFAULT_UNDO, (event, arg) => setDefaultUndo(arg));
 
 function dispatchToApp(event, ...val) {
   mainWindow.webContents.send(event, ...val);
@@ -128,6 +130,11 @@ function dispatchToApp(event, ...val) {
 
 function log(message, ...args) {
   dispatchToApp(EVENT_ELECTRON_LOG, message, ...args);
+}
+
+let defaultUndo = false;
+function setDefaultUndo(allowed) {
+  defaultUndo = allowed;
 }
 
 function treeContextMenu() {
@@ -245,14 +252,18 @@ function exportProject() {
 }
 
 function undo() {
-  // TODO undo/redo my own changes
-  mainWindow.webContents.undo();
+  if (defaultUndo) {
+    mainWindow.webContents.undo();
+    return;
+  }
   dispatchToApp(EVENT_UNDO);
 }
 
 function redo() {
-  // TODO undo/redo my own changes
-  mainWindow.webContents.redo();
+  if (defaultUndo) {
+    mainWindow.webContents.redo();
+    return;
+  }
   dispatchToApp(EVENT_REDO);
 }
 
