@@ -16,14 +16,14 @@ export class TreeNodeItem {
     }
   }
 
-  static fromTreeGroup(group: Group, parent: TreeNodeItem, collapsed: boolean): TreeNodeItem {
+  static fromGroup(group: Group, parent: TreeNodeItem, collapsed: boolean): TreeNodeItem {
     const newItem = new TreeNodeItem(parent, collapsed);
     newItem.group = group;
     newItem.children = [];
     return newItem;
   }
 
-  static fromTreeEntry(entry: Entry, parent: TreeNodeItem, collapsed: boolean): TreeNodeItem {
+  static fromEntry(entry: Entry, parent: TreeNodeItem, collapsed: boolean): TreeNodeItem {
     const newItem = new TreeNodeItem(parent, collapsed);
     newItem.entry = entry;
     return newItem;

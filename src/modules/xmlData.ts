@@ -68,23 +68,26 @@ export function parseXmlRoot(root: XmlRoot): TranslationData {
   );
   const loadedData = new TranslationData(loadedInfo);
   const groups = getArrayProperty(data.group);
-  buildParsedGroupsRecursive(loadedData, groups);
-
+  const newGroup = buildParsedGroupsRecursive(null, groups);
+  loadedData.group.push(...newGroup);
   return loadedData;
 }
 
-function buildParsedGroupsRecursive(parent: TranslationData | Group, parsedGroup: XmlGroup[]) {
+function buildParsedGroupsRecursive(parent: Group, parsedGroup: XmlGroup[]): Group[] {
   if (parsedGroup === null) {
     // Nothing in the parent group
-    return;
+    return null;
   }
+  const newGroups: Group[] = [];
   for (const group of parsedGroup) {
     const newGroup = new Group(group._attributes.id, parent);
     const entries = getArrayProperty(group.entry);
     buildParsedEntry(newGroup, entries);
     const groups = getArrayProperty(group.group);
     buildParsedGroupsRecursive(newGroup, groups);
+    newGroups.push(newGroup);
   }
+  return newGroups;
 }
 
 function buildParsedEntry(parent: Group, parsedEntry: XmlEntry[]) {

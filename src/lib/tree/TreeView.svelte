@@ -4,13 +4,13 @@
   import { displayConfirmPrompt, displayTextPrompt } from '$modules/prompt';
   import { TreeEvent, treeEventDispatcher, TreeNodeItem } from '$modules/tree';
   import { Entry, type TranslationData, Group } from '$modules/translationData';
-  import { arrayRemove, getRegionFromEntry } from '$modules/utils';
+  import { arrayRemove, getRegionFromEntry, splitTrailingNumerals } from '$modules/utils';
   import {
     activeRegion,
     filterId,
     filterText,
     treeActiveEntry,
-    treeActiveNode,
+    treeHighlightNode,
     treeContextNode,
     treeData,
   } from '$stores';
@@ -24,9 +24,9 @@
   const collapseCount = 40;
 
   let tree: TreeNodeItem;
+  let validatorParent: Group;
 
   const cleanupRefresh = treeEventDispatcher.addListener(TreeEvent.RefreshTree, onRefresh);
-
   $: buildTree($treeData, $filterId, $filterText);
 
   onMount(() => {
@@ -46,28 +46,6 @@
     tree = tree;
   }
 
-  async function onNewGroup() {
-    let node = $treeContextNode;
-    // Build new group and module representing that group
-    if (!node.group) {
-      // We clicked an entry, instead we create inside our parent group
-      node = node.parent;
-    }
-    // Highlight group
-    treeActiveNode.set(node);
-
-    const value = await displayTextPrompt('New Group', '', 'Enter group name', 'Group name');
-    if (!value) {
-      clearContextAndSort();
-      return;
-    }
-
-    node.collapsed = false;
-    const newGroup = new Group(value, node.group);
-    TreeNodeItem.fromTreeGroup(newGroup, node, false);
-    clearContextAndSort();
-  }
-
   function clearContextAndSort() {
     const entry = $treeActiveEntry;
     if (entry) {
@@ -82,7 +60,7 @@
       context.parent.children.sort(sortChildren);
     }
 
-    treeActiveNode.set(null);
+    treeHighlightNode.set(null);
     treeContextNode.set(null);
     tree = tree;
   }
@@ -101,12 +79,41 @@
     }
   }
 
+  async function onNewGroup() {
+    let node = $treeContextNode;
+    // Build new group and module representing that group
+    if (!node.group) {
+      // We clicked an entry, instead we create inside our parent group
+      node = node.parent;
+    }
+    // Highlight group
+    treeHighlightNode.set(node);
+
+    validatorParent = node.group;
+    const value = await displayTextPrompt(
+      'New Group',
+      '',
+      'Enter group name',
+      'Group name',
+      groupIdValidator,
+    );
+    if (!value) {
+      clearContextAndSort();
+      return;
+    }
+
+    node.collapsed = false;
+    const newGroup = new Group(value, node.group);
+    TreeNodeItem.fromGroup(newGroup, node, false);
+    clearContextAndSort();
+  }
+
   async function onDelete() {
     const node = $treeContextNode;
     const activeEntry = $treeActiveEntry;
 
     // Highlight
-    treeActiveNode.set(node);
+    treeHighlightNode.set(node);
 
     if (node.group) {
       if (node.parent === null) {
@@ -200,22 +207,28 @@
 
   async function onNewEntry() {
     let node = $treeContextNode;
-
-    treeActiveNode.set(node);
-
     if (!node.group) {
       // We clicked an entry, instead we create inside our parent group
       node = node.parent;
     }
+
+    // Highlight group
+    treeHighlightNode.set(node);
+
     if (node.parent === null) {
       await displayConfirmPrompt('Invalid Action', 'Cannot add entries to root group.', 'Okay');
       clearContextAndSort();
       return;
     }
 
-    // Highlight group
-    treeActiveNode.set(node);
-    const value = await displayTextPrompt('New Entry', '', 'Enter Entry Name:', 'Entry Name');
+    validatorParent = node.group;
+    const value = await displayTextPrompt(
+      'New Entry',
+      '',
+      'Enter Entry Name:',
+      'Entry Name',
+      entryIdValidator,
+    );
     if (!value) {
       clearContextAndSort();
       return;
@@ -223,22 +236,58 @@
 
     node.collapsed = false;
     const newEntry = Entry.newEmptyEntry(value, node.group);
-    TreeNodeItem.fromTreeEntry(newEntry, node, false);
+    TreeNodeItem.fromEntry(newEntry, node, false);
     treeActiveEntry.set(newEntry);
     clearContextAndSort();
   }
 
   function onDupliateId() {
-    // const node = $treeContextNode;
+    const node = $treeContextNode;
+    const original = node.module;
 
-    // TODO this
-    console.log('DUPLICATE ID');
+    // Split apart any numerals
+    let [id, value] = splitTrailingNumerals(original);
+
+    // Set up validators
+    let validator: (value: string) => boolean;
+    if (node.entry) {
+      // Checking entries
+      validatorParent = node.entry.parent;
+      validator = entryIdValidator;
+    } else {
+      // Checking groups
+      validatorParent = node.group.parent;
+      validator = groupIdValidator;
+    }
+
+    // Step through numbers until we find a valid one
+    let newId: string;
+    do {
+      value++;
+      newId = `${id}${value}`;
+    } while (!validator(newId));
+
+    console.log('Final id', newId);
+    if (node.entry) {
+      // Create copy and set new id
+      const copy = Entry.copyTo(node.entry, node.entry.parent);
+      copy.setId(newId);
+      // Create node
+      TreeNodeItem.fromEntry(copy, node.parent, false);
+    } else {
+      // Create copy and set new id
+      const copy = Group.copyTo(node.group, node.group.parent);
+      copy.setId(newId);
+      // Populate tree
+      buildTreeRecursive(copy, node.parent, false);
+    }
+
+    clearContextAndSort();
   }
 
   async function onRename() {
     const node = $treeContextNode;
-
-    treeActiveNode.set(node);
+    treeHighlightNode.set(node);
 
     if (node.group) {
       if (node.parent == null) {
@@ -246,11 +295,13 @@
         clearContextAndSort();
         return;
       }
+      validatorParent = node.group.parent;
       const value = await displayTextPrompt(
         'Rename Group',
         node.group.id,
         'Enter group name:',
         'Group name',
+        groupIdValidator,
       );
       if (!value) {
         clearContextAndSort();
@@ -260,11 +311,13 @@
 
       clearContextAndSort();
     } else {
+      validatorParent = node.entry.parent;
       const value = await displayTextPrompt(
         'Rename Entry',
         node.entry.id,
         'Enter entry name:',
         'Entry name',
+        entryIdValidator,
       );
       if (!value) {
         clearContextAndSort();
@@ -279,22 +332,14 @@
 
   function buildTree(constructedTree: TranslationData, filterId: string, filterText: string) {
     const rootGroup = constructedTree.group[0];
-    const rootTree = TreeNodeItem.fromTreeGroup(rootGroup, null, false);
     const count: Count = { num: 0 };
-    const filteringId = isFilteringId(filterId);
-    const filteringText = isFilteringText(filterText);
+    const filteringId = filterId !== '';
+    const filteringText = filterText !== '';
     markFiltersRecursive(filteringId, filteringText, rootGroup, false, count);
-    buildTreeRecursive(rootGroup, rootTree, count.num > collapseCount);
+    const rootTree = buildTreeRecursive(rootGroup, null, count.num > collapseCount);
+    rootTree.collapsed = false;
     sortTreeRecursive(rootTree);
     tree = rootTree;
-  }
-
-  function isFilteringId(value: string): boolean {
-    return value !== '';
-  }
-
-  function isFilteringText(value: string): boolean {
-    return value !== '';
   }
 
   function markFiltersRecursive(
@@ -427,20 +472,25 @@
     return false;
   }
 
-  function buildTreeRecursive(parent: Group, treeNode: TreeNodeItem, collapsed: boolean) {
-    for (const group of parent.group) {
-      if (!group.meetsFilter) {
+  function buildTreeRecursive(
+    group: Group,
+    parent: TreeNodeItem,
+    collapsed: boolean,
+  ): TreeNodeItem {
+    if (!group.meetsFilter) {
+      return null;
+    }
+    const newBranch = TreeNodeItem.fromGroup(group, parent, collapsed);
+    for (const child of group.group) {
+      buildTreeRecursive(child, newBranch, collapsed);
+    }
+    for (const entry of group.entry) {
+      if (!entry.meetsFilter) {
         continue;
       }
-      const newBranch = TreeNodeItem.fromTreeGroup(group, treeNode, collapsed);
-      buildTreeRecursive(group, newBranch, collapsed);
-      for (const entry of group.entry) {
-        if (!entry.meetsFilter) {
-          continue;
-        }
-        TreeNodeItem.fromTreeEntry(entry, newBranch, collapsed);
-      }
+      TreeNodeItem.fromEntry(entry, newBranch, collapsed);
     }
+    return newBranch;
   }
 
   function sortTreeRecursive(node: TreeNodeItem) {
@@ -466,6 +516,30 @@
     if (left.entry && right.group) {
       return 1;
     }
+  }
+
+  function groupIdValidator(value: string): boolean {
+    if (!value || value.length < 1) {
+      return false;
+    }
+    for (const group of validatorParent.group) {
+      if (group.id === value) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function entryIdValidator(value: string): boolean {
+    if (!value || value.length < 1) {
+      return false;
+    }
+    for (const entry of validatorParent.entry) {
+      if (entry.id === value) {
+        return false;
+      }
+    }
+    return true;
   }
 </script>
 

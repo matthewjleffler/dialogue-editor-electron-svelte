@@ -11,7 +11,7 @@
     type SaveRequest,
   } from '$modules/electron';
   import { parseXmlRoot, type XmlRoot } from '$modules/xmlData';
-  import { activeRegion, regionList, treeActiveNode, treeData } from '$stores';
+  import { activeRegion, regionList, treeHighlightNode, treeData } from '$stores';
   import { onMount } from 'svelte';
 
   onMount(() => {
@@ -32,7 +32,7 @@
   }
 
   function onNewProject() {
-    // TODO
+    // TODO New Project
     console.log('New project request');
   }
 
@@ -44,8 +44,9 @@
   function onTreeDataChanged(root: XmlRoot) {
     const parsedData = parseXmlRoot(root);
 
+    // Reset app state
     treeData.set(parsedData);
-    treeActiveNode.set(null);
+    treeHighlightNode.set(null);
     regionList.set(parsedData.info.regions);
     activeRegion.set(parsedData.info.activeregion);
   }

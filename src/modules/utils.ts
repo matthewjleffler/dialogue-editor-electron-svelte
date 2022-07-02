@@ -41,3 +41,18 @@ export function getItemPath(entry: TranslationData | Group | Entry): string {
 export function replaceAll(original: string, search: string, replace: string): string {
   return original.split(search).join(replace);
 }
+
+const matchEndingNumerals = /\d+$/;
+
+export function splitTrailingNumerals(original: string): [string, number] {
+  const match = original.match(matchEndingNumerals);
+  if (match) {
+    const numerals = match[0];
+    const trimmed = original.substring(0, original.length - numerals.length);
+    const value = parseInt(numerals);
+    return [trimmed, value];
+  } else {
+    console.log('No numerals');
+    return [original, 0];
+  }
+}

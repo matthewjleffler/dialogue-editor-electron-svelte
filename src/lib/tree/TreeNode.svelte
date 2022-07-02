@@ -3,7 +3,7 @@
   import { TreeEvent, treeEventDispatcher, type TreeNodeItem } from '$modules/tree';
   import type { Entry } from '$modules/translationData';
   import { getRegionFromEntry } from '$modules/utils';
-  import { activeRegion, treeActiveEntry, treeActiveNode, treeContextNode } from '$stores';
+  import { activeRegion, treeActiveEntry, treeHighlightNode, treeContextNode } from '$stores';
   import { onDestroy } from 'svelte';
 
   export let item: TreeNodeItem;
@@ -13,7 +13,7 @@
   onDestroy(cleanupChange);
 
   $: arrowDown = !item.collapsed;
-  $: selected = item == $treeActiveNode;
+  $: selected = item == $treeHighlightNode;
   $: active = activeEntryInChildren(item, $treeActiveEntry);
   $: onItemChanged(item);
 
@@ -45,19 +45,23 @@
   function onItemChanged(newItem: TreeNodeItem) {
     count = 0;
 
+    // Get entry for item
     const { entry } = newItem;
     if (!entry) {
       return;
     }
-
-    // Find the number of pages for this region
+    // Get region for entry
     const region = getRegionFromEntry(entry, $activeRegion);
-    if (region) {
-      const regionPages = region.page;
-      if (regionPages) {
-        count = regionPages.length;
-      }
+    if (!region) {
+      return;
     }
+    // Get pages for region
+    const regionPages = region.page;
+    if (!regionPages) {
+      return;
+    }
+
+    count = regionPages.length;
   }
 
   function onClickExpand() {
@@ -65,11 +69,7 @@
   }
 
   function onClickItem() {
-    if (item.entry !== undefined) {
-      treeActiveEntry.set(item.entry);
-    } else {
-      treeActiveEntry.set(null);
-    }
+    treeActiveEntry.set(item.entry);
   }
 
   function onRightClick(e: MouseEvent) {

@@ -45,13 +45,24 @@ export class Info {
 export class Group {
   private _id: string;
   private _path: string;
+  parent: Group;
   group: Group[] = [];
   entry: Entry[] = [];
-  parent: Group | TranslationData;
   meetsFilter: boolean = true;
   deleted: boolean = false;
 
-  constructor(id: string, parent: Group | TranslationData) {
+  static copyTo(original: Group, parent: Group): Group {
+    const copy = new Group(original.id, parent);
+    for (const originalGroup of original.group) {
+      Group.copyTo(originalGroup, copy);
+    }
+    for (const originalEntry of original.entry) {
+      Entry.copyTo(originalEntry, copy);
+    }
+    return copy;
+  }
+
+  constructor(id: string, parent: Group) {
     this.parent = parent;
     if (parent) {
       this.parent.group.push(this);
@@ -91,6 +102,15 @@ export class Entry {
     return empty;
   }
 
+  static copyTo(original: Entry, parent: Group): Entry {
+    const newEntry = new Entry(original.id, parent);
+    for (const originalRegion of original.region) {
+      const region = Region.copy(originalRegion);
+      newEntry.region.push(region);
+    }
+    return newEntry;
+  }
+
   constructor(id: string, parent: Group) {
     this.parent = parent;
     parent.entry.push(this);
@@ -122,6 +142,15 @@ export class Region {
     return region;
   }
 
+  static copy(original: Region): Region {
+    const region = new Region(original.id);
+    for (const originalPage of original.page) {
+      const page = Page.copy(originalPage);
+      region.page.push(page);
+    }
+    return region;
+  }
+
   constructor(id: string) {
     this.id = id;
     this.page = [];
@@ -130,6 +159,11 @@ export class Region {
 
 export class Page {
   text: string;
+
+  static copy(original: Page): Page {
+    const page = new Page(original.text);
+    return page;
+  }
 
   constructor(text: string) {
     this.text = text;

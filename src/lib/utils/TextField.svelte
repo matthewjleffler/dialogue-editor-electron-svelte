@@ -9,7 +9,7 @@
   }
 </script>
 
-<div class="flex bg-search-grey rounded-md p-1 h-5">
+<div class="flex bg-search-grey rounded-md p-1 h-6">
   <input
     class="w-full bg-transparent border-none outline-none text-white/80 placeholder-search"
     bind:value
