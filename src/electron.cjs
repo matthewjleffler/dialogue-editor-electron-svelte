@@ -28,6 +28,8 @@ const EVENT_CONTEXT_TREE_DELETE = 'context-tree-delete';
 const EVENT_TREE_CHANGE = 'tree-change';
 const EVENT_GET_PROJECT_EXPORT = 'get-project-export';
 const EVENT_NEW_PROJECT = 'event-new-project';
+const EVENT_UNDO = 'event-undo';
+const EVENT_REDO = 'event-redo';
 
 const serveURL = serve({ directory: "." });
 const port = process.env.PORT || 3000;
@@ -235,6 +237,18 @@ function saveProjectAs() {
 
 function exportProject() {
   requestSave(false, true);
+}
+
+function undo() {
+  // TODO undo/redo my own changes
+  mainWindow.webContents.undo();
+  dispatchToApp(EVENT_UNDO);
+}
+
+function redo() {
+  // TODO undo/redo my own changes
+  mainWindow.webContents.redo();
+  dispatchToApp(EVENT_REDO);
 }
 
 function getIndent(indent) {
@@ -462,8 +476,8 @@ function generateMenu() {
     {
       label: 'Edit',
       submenu: [
-        { role: 'undo' },
-        { role: 'redo' },
+        { label: 'Undo', accelerator: 'CmdOrCtrl+Z', click: undo },
+        { label: 'Redo', accelerator: 'CmdOrCtrl+Shift+Z', click: redo },
       ],
     },
     {

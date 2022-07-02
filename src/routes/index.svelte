@@ -18,8 +18,18 @@
     electronListen(ElectronEvent.TreeChange, onTreeDataChanged);
     electronListen(ElectronEvent.GetProjectExport, onGetProjectExportRequest);
     electronListen(ElectronEvent.EventNewProject, onNewProject);
+    electronListen(ElectronEvent.EventUndo, onUndo);
+    electronListen(ElectronEvent.EventRedo, onRedo);
     electronDispatch(ElectronEvent.ReloadLastProject);
   });
+
+  function onUndo() {
+    console.log('undo!');
+  }
+
+  function onRedo() {
+    console.log('redo!');
+  }
 
   function onNewProject() {
     // TODO
@@ -47,22 +57,3 @@
   <TextPromptModal />
   <ConfirmPromptModal />
 </div>
-
-<style>
-  :global(body) {
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    color: white;
-    font-size: 12px;
-    line-height: 12px;
-  }
-
-  :global(p) {
-    margin: 0;
-  }
-
-  :global(h1) {
-    margin: 0;
-  }
-</style>

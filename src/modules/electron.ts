@@ -31,6 +31,8 @@ export enum ElectronEvent {
   TreeChange = 'tree-change',
   GetProjectExport = 'get-project-export',
   EventNewProject = 'event-new-project',
+  EventUndo = 'event-undo',
+  EventRedo = 'event-redo',
 }
 
 export const electronDispatch = function (event: ElectronEvent, ...values: unknown[]) {

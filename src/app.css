@@ -13,3 +13,15 @@
   background: #999999;
   @apply rounded-full
 }
+
+body {
+  @apply m-0 p-0 overflow-hidden text-white text-xs;
+}
+
+p {
+  @apply m-0;
+}
+
+h1 {
+  @apply m-0;
+}
