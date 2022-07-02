@@ -10,6 +10,7 @@
     type SaveMessage,
     type SaveRequest,
   } from '$modules/electron';
+  import { dataToExportXml, dataToProjectXml } from '$modules/export';
   import { TranslationData } from '$modules/translationData';
   import { parseXmlRoot, type XmlRoot } from '$modules/xmlData';
   import { activeRegion, regionList, treeHighlightNode, treeData } from '$stores';
@@ -41,12 +42,18 @@
   }
 
   function onGetProjectExportRequest(request: SaveRequest) {
-    const message: SaveMessage = { request, data: $treeData };
+    const doExport = request.msg.doExport;
+    const data = $treeData;
+    const xml = doExport ? dataToExportXml(data) : dataToProjectXml(data);
+    const message: SaveMessage = { request, xml };
     electronDispatch(ElectronEvent.ReceiveProjectExport, message);
   }
 
   function onTreeDataChanged(root: XmlRoot) {
     const parsedData = parseXmlRoot(root);
+    if (!parsedData) {
+      return;
+    }
 
     // Reset app state
     treeData.set(parsedData);

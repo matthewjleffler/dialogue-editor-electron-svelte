@@ -12,7 +12,7 @@ export interface SaveRequest {
 
 export interface SaveMessage {
   request: SaveRequest,
-  data: TranslationData,
+  xml: string,
 }
 
 export enum ElectronEvent {

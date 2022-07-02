@@ -1,6 +1,6 @@
 const windowStateManager = require('electron-window-state');
 const contextMenu = require('electron-context-menu');
-const { app, BrowserWindow, ipcMain, Menu, MenuItem, dialog, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu, MenuItem, dialog } = require('electron');
 const serve = require('electron-serve');
 const path = require('path');
 const fs = require('fs/promises');
@@ -251,137 +251,8 @@ function redo() {
   dispatchToApp(EVENT_REDO);
 }
 
-function getIndent(indent) {
-  let result = '';
-  for (let i = 0; i < indent; i++) {
-    result += '  ';
-  }
-  return result;
-}
-
-function groupToXmlRecursive(indent, group) {
-  let result = `${getIndent(indent)}<group id="${group._id}">\n`;
-  for (const child of group.group) {
-    result += groupToXmlRecursive(indent + 1, child);
-  }
-  for (const entry of group.entry) {
-    result += `${getIndent(indent + 1)}<entry id="${entry._id}">\n`;
-    for (const region of entry.region) {
-      result += `${getIndent(indent + 2)}<region id="${region.id}">\n`;
-      for (let p = 0; p < region.page.length; p++) {
-        const page = region.page[p];
-        result += `${getIndent(indent + 3)}<page index="${p}"><![CDATA[${page.text}]]></page>\n`;
-      }
-      result += `${getIndent(indent + 2)}</region>\n`;
-    }
-    result += `${getIndent(indent + 1)}</entry>\n`;
-  }
-  result += `${getIndent(indent)}</group>\n`;
-  return result;
-}
-
-function dataToXml(data) {
-  let result = '<?xml version="1.0" encoding="UTF-8" standalone="no" ?>\n\n';
-
-  result += '<data>\n';
-  result += '  <info>\n';
-  result += `    <version>${data.info.version}</version>\n`;
-  result += `      <activeregion>${data.info.activeregion}</activeregion>\n`;
-  result += `    <regions>\n`;
-  for (const region of data.info.regions) {
-    result += `      <region>${region}</region>\n`;
-  }
-  result += `    </regions>\n`;
-  result += `    <name>${data.info.name}</name>\n`;
-  result += '  </info>\n';
-
-  for (const group of data.group) {
-    result += groupToXmlRecursive(1, group);
-  }
-
-  result += '</data>\n';
-  return result;
-}
-
-function getAllEntries(result, group) {
-  for (const entry of group.entry) {
-    entry.parent = group;
-    result.push(entry);
-  }
-  for (const child of group.group) {
-    child.parent = group;
-    getAllEntries(result, child);
-  }
-}
-
-function getEntryRegion(regionId, entry) {
-  for (const region of entry.region) {
-    if (region.id === regionId) {
-      return region;
-    }
-  }
-  return null;
-}
-
-function getEntryPath(entry) {
-  if (!entry.parent || entry.id === 'Content') {
-    return '';
-  }
-  const parentPath = getEntryPath(entry.parent);
-  if (parentPath !== '') {
-    return parentPath + '.' + entry._id;
-  }
-  return entry._id;
-}
-
-function cleanText(text) {
-  text = text.trimLeft();
-  text = text.trimRight();
-  text = text.replace('\r', '');
-  return text;
-}
-
-function getRegionPages(region) {
-  let result = '';
-  for (let i = 0; i < region.page.length; i++) {
-    const text = region.page[i].text;
-    if (!text || text.length < 1) {
-      continue;
-    }
-    if (i > 0) {
-      result += '%r'; // Page split
-    }
-    result += cleanText(text);
-  }
-  return result;
-}
-
-function dataToExportXml(data) {
-  let result = '<?xml version="1.0" encoding="UTF-8" standalone="no" ?>\n\n';
-
-  const allEntries = [];
-  getAllEntries(allEntries, data.group[0]);
-
-  result += `<data>\n`;
-  for (const region of data.info.regions) {
-    result += `  <region id="${region}">\n`;
-
-    for (const entry of allEntries) {
-      const entryRegion = getEntryRegion(region, entry);
-      if (entryRegion === null) {
-        continue;
-      }
-      result += `    <line id="${getEntryPath(entry)}"><![CDATA[${getRegionPages(entryRegion)}]]></line>\n`;
-    }
-    result += `  </region>\n`;
-  }
-  result += `</data>\n`;
-
-  return result;
-}
-
 async function finishSaveProject(args) {
-  const { request, data } = args;
+  const { request, xml } = args;
   const { doExport, doSaveAs } = request.msg;
 
   // "Save as" if appropriate
@@ -400,10 +271,9 @@ async function finishSaveProject(args) {
 
   // Export
   if (doExport) {
-    const exportXml = dataToExportXml(data);
     const exportPath = `${app.getPath('desktop')}/translation.xml`;
     try {
-      await fs.writeFile(exportPath, exportXml)
+      await fs.writeFile(exportPath, xml)
       log(`Exported to: ${exportPath}`);
     } catch (err) {
       log(err)
@@ -412,9 +282,8 @@ async function finishSaveProject(args) {
   }
 
   // Normal save
-  const dataXml = dataToXml(data);
   try {
-    await fs.writeFile(currentProjectPath, dataXml);
+    await fs.writeFile(currentProjectPath, xml);
     log(`Saved Project to: ${currentProjectPath}`);
     writeProjectPath();
   } catch (err) {
