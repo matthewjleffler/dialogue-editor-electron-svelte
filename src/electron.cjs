@@ -254,21 +254,19 @@ function redo() {
 function getIndent(indent) {
   let result = '';
   for (let i = 0; i < indent; i++) {
-    result += '\t';
+    result += '  ';
   }
   return result;
 }
 
 function groupToXmlRecursive(indent, group) {
   let result = `${getIndent(indent)}<group id="${group._id}">\n`;
-  for (let i = 0; i < group.group.length; i++) {
-    result += groupToXmlRecursive(indent + 1, group.group[i]);
+  for (const child of group.group) {
+    result += groupToXmlRecursive(indent + 1, child);
   }
-  for (let g = 0; g < group.entry.length; g++) {
-    const entry = group.entry[g];
+  for (const entry of group.entry) {
     result += `${getIndent(indent + 1)}<entry id="${entry._id}">\n`;
-    for (let r = 0; r < entry.region.length; r++) {
-      const region = entry.region[r];
+    for (const region of entry.region) {
       result += `${getIndent(indent + 2)}<region id="${region.id}">\n`;
       for (let p = 0; p < region.page.length; p++) {
         const page = region.page[p];
@@ -286,57 +284,54 @@ function dataToXml(data) {
   let result = '<?xml version="1.0" encoding="UTF-8" standalone="no" ?>\n\n';
 
   result += '<data>\n';
-  result += '\t<info>\n';
-  result += `\t\t<version>${data.info.version}</version>\n`;
-  result += `\t\t<activeregion>${data.info.activeregion}</activeregion>\n`;
-  result += `\t\t<regions>\n`;
-  for (let i = 0; i < data.info.regions.length; i++) {
-    result += `\t\t\t<region>${data.info.regions[i]}</region>\n`;
+  result += '  <info>\n';
+  result += `    <version>${data.info.version}</version>\n`;
+  result += `      <activeregion>${data.info.activeregion}</activeregion>\n`;
+  result += `    <regions>\n`;
+  for (const region of data.info.regions) {
+    result += `      <region>${region}</region>\n`;
   }
-  result += `\t\t</regions>\n`;
-  result += `\t\t<name>${data.info.name}</name>\n`;
-  result += '\t</info>\n';
+  result += `    </regions>\n`;
+  result += `    <name>${data.info.name}</name>\n`;
+  result += '  </info>\n';
 
-  for (let i = 0; i < data.group.length; i++) {
-    result += groupToXmlRecursive(1, data.group[i]);
+  for (const group of data.group) {
+    result += groupToXmlRecursive(1, group);
   }
 
   result += '</data>\n';
-
   return result;
 }
 
 function getAllEntries(result, group) {
-  for (let i = 0; i < group.entry.length; i++) {
-    const entry = group.entry[i];
+  for (const entry of group.entry) {
     entry.parent = group;
     result.push(entry);
   }
-  for (let i = 0; i < group.group.length; i++) {
-    const childGroup = group.group[i];
-    childGroup.parent = group;
-    getAllEntries(result, childGroup);
+  for (const child of group.group) {
+    child.parent = group;
+    getAllEntries(result, child);
   }
 }
 
-function getEntryRegion(region, entry) {
-  for (let i = 0; i < entry.region.length; i++) {
-    if (entry.region[i].id === region) {
-      return entry.region[i];
+function getEntryRegion(regionId, entry) {
+  for (const region of entry.region) {
+    if (region.id === regionId) {
+      return region;
     }
   }
   return null;
 }
 
 function getEntryPath(entry) {
-  if (entry.parent === undefined || entry.id === 'Content') {
+  if (!entry.parent || entry.id === 'Content') {
     return '';
   }
   const parentPath = getEntryPath(entry.parent);
   if (parentPath !== '') {
-    return parentPath + '.' + entry.id;
+    return parentPath + '.' + entry._id;
   }
-  return entry.id;
+  return entry._id;
 }
 
 function cleanText(text) {
@@ -368,19 +363,17 @@ function dataToExportXml(data) {
   getAllEntries(allEntries, data.group[0]);
 
   result += `<data>\n`;
-  for (let r = 0; r < data.info.regions.length; r++) {
-    const region = data.info.regions[r];
-    result += `\t<region id="${region}">\n`;
+  for (const region of data.info.regions) {
+    result += `  <region id="${region}">\n`;
 
-    for (let e = 0; e < allEntries.length; e++) {
-      const entry = allEntries[e];
+    for (const entry of allEntries) {
       const entryRegion = getEntryRegion(region, entry);
       if (entryRegion === null) {
         continue;
       }
-      result += `\t\t<line id="${getEntryPath(entry)}"><![CDATA[${getRegionPages(entryRegion)}]]></line>\n`;
+      result += `    <line id="${getEntryPath(entry)}"><![CDATA[${getRegionPages(entryRegion)}]]></line>\n`;
     }
-    result += `\t</region>\n`;
+    result += `  </region>\n`;
   }
   result += `</data>\n`;
 
@@ -402,10 +395,7 @@ async function finishSaveProject(args) {
       // No path to save
       return;
     }
-    currentProjectPath = "";
-    for (let i = 0; i < paths.length; i++) {
-      currentProjectPath += paths[i];
-    }
+    currentProjectPath = paths.join('');
   }
 
   // Export
