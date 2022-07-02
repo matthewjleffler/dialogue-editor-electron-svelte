@@ -10,3 +10,17 @@ export const regionList = writable<string[]>(null);
 export const activeRegion = writable<string>(null);
 export const filterId = writable<string>('');
 export const filterText = writable<string>('');
+export const unsavedProject = writable<boolean>(false);
+export const unsavedExport = writable<boolean>(false);
+
+export function setUndoPoint() {
+  // TODO undo/redo
+
+  setUnsaved();
+}
+
+export function setUnsaved() {
+
+  unsavedExport.set(true);
+  unsavedProject.set(true);
+}

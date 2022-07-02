@@ -3,7 +3,7 @@
   import { TreeEvent, treeEventDispatcher } from '$modules/tree';
   import type { Page, Region } from '$modules/translationData';
   import { getRegionFromEntry, replaceAll } from '$modules/utils';
-  import { activeRegion, treeActiveEntry } from '$stores';
+  import { activeRegion, setUndoPoint, treeActiveEntry } from '$stores';
   import PageDisplay from './PageDisplay.svelte';
   import { L } from '$modules/localization';
 
@@ -25,6 +25,9 @@
     if (!pages) {
       return;
     }
+
+    setUndoPoint();
+
     const index: number = event.detail;
     pages.splice(index, 0, { text: '' });
     entryChanged();
@@ -38,6 +41,8 @@
       await displayConfirmPrompt(L.InvalidAction, L.InvalidDeleteLastPage, L.Okay);
       return;
     }
+
+    setUndoPoint();
 
     const index: number = event.detail;
     const newline = replaceAll(pages[index].text, '\\n', '<br>');

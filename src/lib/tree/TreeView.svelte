@@ -13,6 +13,7 @@
     treeHighlightNode,
     treeContextNode,
     treeData,
+    setUndoPoint,
   } from '$stores';
   import { onDestroy, onMount } from 'svelte';
   import TreeNode from './TreeNode.svelte';
@@ -90,6 +91,8 @@
       return;
     }
 
+    setUndoPoint();
+
     node.collapsed = false;
     const newGroup = new Group(value, node.group);
     TreeNodeItem.fromGroup(newGroup, node, false);
@@ -132,6 +135,8 @@
       return null;
     }
 
+    setUndoPoint();
+
     // Handle deletion
     group.markDeleted();
     group.parent.removeGroup(group);
@@ -166,6 +171,8 @@
       clearContextAndSort();
       return;
     }
+
+    setUndoPoint();
 
     // Handle deletion
     const activeEntry = $treeActiveEntry;
@@ -261,6 +268,8 @@
       return;
     }
 
+    setUndoPoint();
+
     const validName = getNonDuplicateName(copyBuffer, node.group);
     if (copyBuffer.entry) {
       // Pasting entry
@@ -300,6 +309,8 @@
       return;
     }
 
+    setUndoPoint();
+
     node.collapsed = false;
     const newEntry = Entry.newEmptyEntry(value, node.group);
     TreeNodeItem.fromEntry(newEntry, node, false);
@@ -313,6 +324,8 @@
       await displayConfirmPrompt(L.InvalidAction, L.InvalidCopyRoot, L.Okay);
       return;
     }
+
+    setUndoPoint();
 
     const validatorGroup = node.entry ? node.entry.parent : node.group.parent;
     const newId = getNonDuplicateName(node, validatorGroup);
@@ -402,6 +415,9 @@
         clearContextAndSort();
         return;
       }
+
+      setUndoPoint();
+
       node.group.setId(value);
 
       clearContextAndSort();
@@ -418,6 +434,9 @@
         clearContextAndSort();
         return;
       }
+
+      setUndoPoint();
+
       node.entry.setId(value);
       treeActiveEntry.set(node.entry);
 

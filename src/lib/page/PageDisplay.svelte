@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Page } from '$modules/translationData';
   import { replaceAll } from '$modules/utils';
+  import { setUnsaved } from '$stores';
   import { createEventDispatcher } from 'svelte';
 
   export let page: Page;
@@ -31,7 +32,11 @@
     charCount = value.length;
 
     const escapedText = replaceAll(newValue, htmlNewline, escapedNewline);
-    page.text = escapedText;
+    const isChanged = escapedText !== page.text;
+    if (isChanged) {
+      page.text = escapedText;
+      setUnsaved(); // Undo/redo is tracked separately for this text element
+    }
   }
 
   function onClickAddPrev() {

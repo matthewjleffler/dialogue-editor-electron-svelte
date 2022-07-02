@@ -20,10 +20,10 @@
     treeData,
     treeActiveEntry,
     treeContextNode,
+    unsavedExport,
+    unsavedProject,
   } from '$stores';
   import { onMount } from 'svelte';
-
-  // TODO track saved / exported
 
   onMount(() => {
     // Set empty tree content
@@ -56,6 +56,11 @@
     const xml = doExport ? dataToExportXml(data) : dataToProjectXml(data);
     const message: SaveMessage = { request, xml };
     electronDispatch(ElectronEvent.ReceiveProjectExport, message);
+    if (doExport) {
+      unsavedExport.set(false);
+    } else {
+      unsavedProject.set(false);
+    }
   }
 
   function onTreeDataChanged(root: XmlRoot) {
@@ -71,6 +76,8 @@
     treeContextNode.set(null);
     regionList.set(parsedData.info.regions);
     activeRegion.set(parsedData.info.activeregion);
+    unsavedExport.set(false);
+    unsavedProject.set(false);
   }
 </script>
 
