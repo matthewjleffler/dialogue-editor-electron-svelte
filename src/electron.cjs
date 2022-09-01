@@ -15,6 +15,7 @@ try {
 // Event constants
 const EVENT_ELECTRON_LOG = 'electron-log';
 const EVENT_OPEN_CONTEXT_RIGHT_CLICK = 'open-context-right-click';
+const EVENT_OPEN_PAGE_CONTEXT = 'open-page-context';
 const EVENT_RECEIVE_PROJECT_EXPORT = 'receive-project-export';
 const EVENT_RELOAD_LAST_PROJECT = 'reload-last-project';
 const EVENT_CONTEXT_TREE_NEW_GROUP = 'context-tree-new-group';
@@ -120,6 +121,7 @@ app.on('window-all-closed', () => {
 });
 
 ipcMain.on(EVENT_OPEN_CONTEXT_RIGHT_CLICK, () => treeContextMenu());
+ipcMain.on(EVENT_OPEN_PAGE_CONTEXT, () => pageContextMenu());
 ipcMain.on(EVENT_RECEIVE_PROJECT_EXPORT, (event, arg) => finishSaveProject(arg));
 ipcMain.on(EVENT_RELOAD_LAST_PROJECT, () => readProjectPath());
 ipcMain.on(EVENT_DEFAULT_UNDO, (event, arg) => setDefaultUndo(arg));
@@ -174,6 +176,17 @@ function treeContextMenu() {
     label: "Delete",
     click: () => dispatchToApp(EVENT_CONTEXT_TREE_DELETE)
   }));
+
+  menu.popup({});
+}
+
+function pageContextMenu() {
+  const menu = new Menu();
+
+  menu.append(new MenuItem({ role: 'cut', accelerator: 'CmdOrCtrl+X' }));
+  menu.append(new MenuItem({ role: 'copy', accelerator: 'CmdOrCtrl+C' }));
+  menu.append(new MenuItem({ role: 'paste', accelerator: 'CmdOrCtrl+V' }));
+  menu.append(new MenuItem({ role: 'selectAll', accelerator: 'CmdOrCtrl+A' }));
 
   menu.popup({});
 }
@@ -357,6 +370,11 @@ function generateMenu() {
       submenu: [
         { label: 'Undo', accelerator: 'CmdOrCtrl+Z', click: undo },
         { label: 'Redo', accelerator: 'CmdOrCtrl+Shift+Z', click: redo },
+        { type: "separator" },
+        { role: 'cut', accelerator: 'CmdOrCtrl+X' },
+        { role: 'copy', accelerator: 'CmdOrCtrl+C' },
+        { role: 'paste', accelerator: 'CmdOrCtrl+V' },
+        { role: 'selectAll', accelerator: 'CmdOrCtrl+A' },
       ],
     },
     {

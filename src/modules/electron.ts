@@ -17,6 +17,7 @@ export interface SaveMessage {
 export enum ElectronEvent {
   ElectronLog = 'electron-log',
   OpenContextRightClick = 'open-context-right-click',
+  OpenPageContext = 'open-page-context',
   ReceiveProjectExport = 'receive-project-export',
   ReloadLastProject = 'reload-last-project',
   ContextTreeNewGroup = 'context-tree-new-group',

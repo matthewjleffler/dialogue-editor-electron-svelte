@@ -56,6 +56,13 @@
   function onBlur() {
     electronDispatch(ElectronEvent.SetDefaultUndo, false);
   }
+
+  function onContext(e: Event) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    electronDispatch(ElectronEvent.OpenPageContext);
+  }
 </script>
 
 <div class="flex flex-col">
@@ -67,6 +74,7 @@
     bind:value
     spellcheck={true}
     maxlength={37 * 7}
+    on:contextmenu={onContext}
     on:blur={onBlur}
     class="w-[268px] h-[85px] bg-page-back resize-none box-border font-mono border-none outline-none my-1"
   />
