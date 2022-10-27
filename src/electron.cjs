@@ -33,6 +33,7 @@ const EVENT_RENAME_PROJECT = 'event-rename-project';
 const EVENT_UNDO = 'event-undo';
 const EVENT_REDO = 'event-redo';
 const EVENT_DEFAULT_UNDO = 'event-default-undo';
+const EVENT_SET_TITLE = 'event-set-title';
 
 const serveURL = serve({ directory: "." });
 const port = process.env.PORT || 3000;
@@ -47,8 +48,8 @@ function createWindow() {
 
   const mainWindow = new BrowserWindow({
     backgroundColor: 'black',
-    titleBarStyle: 'hidden',
-    autoHideMenuBar: true,
+    // titleBarStyle: 'hidden',
+    autoHideMenuBar: false,
     trafficLightPosition: {
       x: 17,
     },
@@ -125,6 +126,7 @@ ipcMain.on(EVENT_OPEN_PAGE_CONTEXT, () => pageContextMenu());
 ipcMain.on(EVENT_RECEIVE_PROJECT_EXPORT, (event, arg) => finishSaveProject(arg));
 ipcMain.on(EVENT_RELOAD_LAST_PROJECT, () => readProjectPath());
 ipcMain.on(EVENT_DEFAULT_UNDO, (event, arg) => setDefaultUndo(arg));
+ipcMain.on(EVENT_SET_TITLE, (event, arg) => setTitle(arg));
 
 function dispatchToApp(event, ...val) {
   mainWindow.webContents.send(event, ...val);
@@ -137,6 +139,10 @@ function log(message, ...args) {
 let defaultUndo = false;
 function setDefaultUndo(allowed) {
   defaultUndo = allowed;
+}
+
+function setTitle(title) {
+  mainWindow.setTitle(title);
 }
 
 function treeContextMenu() {

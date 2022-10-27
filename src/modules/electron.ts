@@ -35,6 +35,7 @@ export enum ElectronEvent {
   EventUndo = 'event-undo',
   EventRedo = 'event-redo',
   SetDefaultUndo = 'event-default-undo',
+  SetTitle = 'event-set-title',
 }
 
 export const electronDispatch = function (event: ElectronEvent, ...values: unknown[]) {
